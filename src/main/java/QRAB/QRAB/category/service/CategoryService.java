@@ -28,7 +28,7 @@ public class CategoryService {
     public ResponseEntity<?> saveCategory(CategoryRequestDTO categoryRequestDTO) {
         User user = userRepository.findOneWithAuthoritiesByUsername(categoryRequestDTO.getEmail())
                 .orElseThrow(() -> new NotFoundMemberException("Could not find user with email: " + categoryRequestDTO.getEmail()));
-        boolean isDuplicate = categoryRepository.existsByName(categoryRequestDTO.getCategoryName());
+        boolean isDuplicate = categoryRepository.existsByNameAndUser(categoryRequestDTO.getCategoryName(), user); //카테고리 이름이 사용자별로 같을 수 있음
         if(!isDuplicate){
             Category category = categoryRequestDTO.toEntity(user); //Category 객체 생성
             Category savedCategory = categoryRepository.save(category);// category 객체를 db에 저장
@@ -42,7 +42,7 @@ public class CategoryService {
     public ResponseEntity<?> saveChildCategory(CategoryChildRequestDTO categoryChildRequestDTO){
         User user = userRepository.findOneWithAuthoritiesByUsername(categoryChildRequestDTO.getEmail())
                 .orElseThrow(() -> new NotFoundMemberException("Could not find user with email: " + categoryChildRequestDTO.getEmail()));
-        boolean isDuplicate = categoryRepository.existsByName(categoryChildRequestDTO.getCategoryName());
+        boolean isDuplicate = categoryRepository.existsByNameAndUser(categoryChildRequestDTO.getCategoryName(), user);
         if(!isDuplicate){
             Category category = categoryChildRequestDTO.toEntity(user);//Category 객체 생성
             Category parentCategory = categoryRepository.findById(categoryChildRequestDTO.getParentId())
@@ -66,14 +66,15 @@ public class CategoryService {
                 .orElseThrow(() -> new NotFoundMemberException("Could not find user with email: " + categoryUpdateDTO.getEmail()));
         Category category = categoryRepository.findById(categoryUpdateDTO.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Could not find category with ID"));
-
-        boolean isDuplicate = categoryRepository.existsByNameAndIdNot(categoryUpdateDTO.getCategoryName(), categoryUpdateDTO.getCategoryId());
+        //특정 사용자가 소유한 카테고리 중에서 새로 변경하려는 카테고리 이름
+        // 현재 수정하려는 카테고리의 ID로, 이 카테고리는 중복 검사의 대상에서 제외
+        boolean isDuplicate = categoryRepository.existsByNameAndUserAndIdNot(categoryUpdateDTO.getCategoryName(), user, categoryUpdateDTO.getCategoryId());
 
         if(!isDuplicate){
             category.setName(categoryUpdateDTO.getCategoryName());
             Category savedCategory = categoryRepository.save(category);// category 객체를 db에 저장
         }else{
-            throw new RuntimeException("Could not add category: " + categoryUpdateDTO.getCategoryName() + " is already exists");
+            throw new RuntimeException("Could not add category: " + categoryUpdateDTO.getCategoryName());
         }
         return ResponseEntity.ok(categoryUpdateDTO);
     }
@@ -96,6 +97,22 @@ public class CategoryService {
         }else{
                 throw new RuntimeException("Category cannot be deleted");//자식 카테고리 존재해서 부모 카테고리 삭제 불가
         }
+    }
+
+    @Transactional(readOnly = false)
+    public ResponseEntity<?> getParentCategories(String username){
+        User user = userRepository.findOneWithAuthoritiesByUsername(username)
+                .orElseThrow(()-> new RuntimeException("Could not find user with email"));
+        List<Category> usersCategories = categoryRepository.findByUser(user);
+        List<CategoryParentResponseDTO> categoryResponseDTOS = usersCategories.stream()
+                .map(CategoryParentResponseDTO::fromEntity)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        /*List<Category> categories = categoryRepository.findTopLevelCategories();
+        List<CategoryResponseDTO> categoryResponseDTOS = categories.stream()
+                .map(CategoryResponseDTO::fromEntity)
+                .collect(Collectors.toList());*/
+        return ResponseEntity.ok(categoryResponseDTOS);
     }
 
     @Transactional(readOnly = true)
@@ -123,32 +140,33 @@ public class CategoryService {
         return categoryResponseDTOS;
     }
 
-    @Transactional(readOnly = false)
-    public ResponseEntity<?> getParentCategories(){
-        List<Category> categories = categoryRepository.findTopLevelCategories();
-        List<CategoryResponseDTO> categoryResponseDTOS = categories.stream()
-                .map(CategoryResponseDTO::fromEntity)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(categoryResponseDTOS);
-    }
 
     @Transactional(readOnly = false)
-    public ResponseEntity<?> getChildWithParent(Long parentId){
-        List<Category> parentCategories = categoryRepository.findTopLevelCategories();
+    public ResponseEntity<?> getChildWithParent(Long parentId, String username){
+        /*List<Category> parentCategories = categoryRepository.findTopLevelCategories();
         List<CategoryResponseDTO> categoriesParentResponseDTOS = parentCategories.stream()
                 .map(CategoryResponseDTO::fromEntity)
+                .collect(Collectors.toList());*/
+
+        User user = userRepository.findOneWithAuthoritiesByUsername(username)
+                .orElseThrow(()-> new RuntimeException("Could not find user with email"));
+
+        List<Category> usersCategories = categoryRepository.findByUser(user);
+        List<CategoryParentResponseDTO> categoryResponseDTOS = usersCategories.stream()
+                .map(CategoryParentResponseDTO::fromEntity)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
         Category parentCategory = categoryRepository.findById(parentId)
                 .orElseThrow(() -> new RuntimeException("Could not find parentId"));
 
-
         List<Category> childCategories = categoryRepository.findByParentCategory(parentCategory);
         List<CategoryResponseDTO> categoriesChildResponseDTOS = childCategories.stream()
                 .map(CategoryResponseDTO::fromEntity)
                 .collect(Collectors.toList());
+
         Map<String, Object> result = new HashMap<>();
-        result.put("parentCategories", categoriesParentResponseDTOS);
+        result.put("parentCategories", categoryResponseDTOS);
         result.put("childCategories", categoriesChildResponseDTOS);
         return ResponseEntity.ok(result);
 
