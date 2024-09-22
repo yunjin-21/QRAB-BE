@@ -32,7 +32,7 @@ public class CategoryController {
         return categoryService.saveChildCategory(categoryChildRequestDTO);
     }
 
-    @PostMapping("/update") //부모 + 자식 모두 업데이트
+    @PutMapping("/update") //부모 + 자식 모두 업데이트
     public ResponseEntity<?> updateCategory(@RequestBody CategoryUpdateDTO categoryUpdateDTO) throws IOException{
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         categoryUpdateDTO.setEmail(authentication.getName());
@@ -55,13 +55,17 @@ public class CategoryController {
     // 상위 카테고리 조회
     @GetMapping("/parent")//카테고리 조회 페이지 - parent id + parent name 만 보이게
     public ResponseEntity<?> getParentCategories() {
-        return categoryService.getParentCategories();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        return categoryService.getParentCategories(username);
     }
 
     //상위 카테고리 + 해당 상위 카테고리의 하위 카테고리 조회
     @GetMapping("/parent/child/{parentId}")
     public ResponseEntity<?> getChildWithParent(@PathVariable("parentId") Long parentId){
-        return categoryService.getChildWithParent(parentId);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        return categoryService.getChildWithParent(parentId, username);
     }
 
 
