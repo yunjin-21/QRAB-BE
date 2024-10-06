@@ -18,11 +18,14 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.openqa.selenium.By;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -34,6 +37,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
+
 //블로그 2개 + 스크린 샷 의 경우는 url 사용함
 @Service //db접근을 위한 repository와 사용자 인터페이스를 처리하는 controller 사이의 중간 계층 역할
 @Transactional(readOnly = true)//데이터를 조회만 하기 - 읽기전용
@@ -135,6 +140,8 @@ public class UrlCrawlerService {
 
         try{
             driver.get(note.getUrl()); // Selenium WebDriver 가 브라우저를 열고, note.getUrl() 메서드로 반환된 URL 의 웹 페이지를 로드
+            //WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30)); // 30초 대기
+            //wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
 
             File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
             System.out.println("file : " + screenshot.toString());

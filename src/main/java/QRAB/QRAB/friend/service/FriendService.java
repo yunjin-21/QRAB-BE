@@ -24,10 +24,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service //db접근을 위한 repository와 사용자 인터페이스를 처리하는 controller 사이의 중간 계층 역할
@@ -98,9 +95,14 @@ public class FriendService {
         List<FriendResponseDTO> friendResponseDTOs = friendships.stream()
                 .map(friendship -> {
                     User friend = friendship.getFriend(); // 친구 객체 찾기
+                    if (friend == null) {
+                        // 친구가 null인 경우 기본값 또는 예외 처리
+                        return null;
+                    }
                     List<Note> notes = noteRepository.findByUser(friend); // 친구가 만든 노트 리스트 찾기
                     return FriendResponseDTO.fromEntity(friend, notes);
                 })
+                .filter(Objects::nonNull) // null 필터링
                 .collect(Collectors.toList());
         result.put("friendships", friendResponseDTOs);
 
