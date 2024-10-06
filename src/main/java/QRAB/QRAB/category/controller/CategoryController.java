@@ -19,13 +19,13 @@ import java.io.IOException;
 @RequiredArgsConstructor // final 필드 + @NonNull 애노테이션이 붙은 필드에 대한 생성자를 자동으로 생성
 public class CategoryController {
     private final CategoryService categoryService;
-    @PostMapping("/add")
+    @PostMapping
     public ResponseEntity<?> addCategory(@RequestBody CategoryRequestDTO categoryRequestDTO) throws IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         categoryRequestDTO.setEmail(authentication.getName());
         return categoryService.saveCategory(categoryRequestDTO);
     }
-    @PostMapping("/add/child")
+    @PostMapping("/child")
     public ResponseEntity<?> addChildCategory(@RequestBody CategoryChildRequestDTO categoryChildRequestDTO) throws IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         categoryChildRequestDTO.setEmail(authentication.getName());
@@ -61,7 +61,7 @@ public class CategoryController {
     }
 
     //상위 카테고리 + 해당 상위 카테고리의 하위 카테고리 조회
-    @GetMapping("/parent/child/{parentId}")
+    @GetMapping("/parent/{parentId}/child")
     public ResponseEntity<?> getChildWithParent(@PathVariable("parentId") Long parentId){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();

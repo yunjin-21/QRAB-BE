@@ -49,7 +49,6 @@ dependencies {
 
 
 
-
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.5'//JJWT 라이브러리의 실제 구현체를 추가

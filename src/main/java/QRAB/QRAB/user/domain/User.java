@@ -1,8 +1,10 @@
 package QRAB.QRAB.user.domain;
 
 import QRAB.QRAB.category.domain.Category;
+import QRAB.QRAB.friend.domain.Friendship;
 import QRAB.QRAB.major.domain.Major;
 import QRAB.QRAB.note.domain.Note;
+import QRAB.QRAB.profile.domain.Profile;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -58,5 +60,12 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     private List<Category> categories = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    private List<Friendship> friends = new ArrayList<>();
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private Profile profile;
+
 
 }

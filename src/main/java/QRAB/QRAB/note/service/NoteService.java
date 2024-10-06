@@ -1,7 +1,10 @@
 package QRAB.QRAB.note.service;
 
+import QRAB.QRAB.category.domain.Category;
+import QRAB.QRAB.category.repository.CategoryRepository;
 import QRAB.QRAB.note.domain.Note;
 import QRAB.QRAB.note.dto.NoteResponseDTO;
+import QRAB.QRAB.note.dto.RecentNoteDTO;
 import QRAB.QRAB.note.dto.SummaryResponseDTO;
 import QRAB.QRAB.note.repository.NoteRepository;
 import QRAB.QRAB.user.domain.User;
@@ -23,6 +26,7 @@ import java.util.stream.Collectors;
 public class NoteService {
     private final NoteRepository noteRepository;
     private final UserRepository userRepository;
+    public final CategoryRepository categoryRepository;
 
     @Transactional(readOnly = true)
     public SummaryResponseDTO getNoteSummary(Long noteId){
@@ -43,5 +47,35 @@ public class NoteService {
                 .map(NoteResponseDTO::fromEntity)
                 .collect(Collectors.toList());
         return noteResponseDTOs;
+    }
+
+    @Transactional(readOnly = true)
+    public List<NoteResponseDTO> getNotesByCategory(String username, Long categoryId, int page) {
+        User user = userRepository.findOneWithAuthoritiesByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Could not find user with email"));
+
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new RuntimeException("Could not find category with ID: " + categoryId));
+
+        Pageable pageable = PageRequest.of(page, 6, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Note> notes = noteRepository.findByCategoryAndUser(category, user, pageable);
+
+        return notes.getContent().stream()
+                .map(NoteResponseDTO::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<RecentNoteDTO> getUserRecentNotesBy3(String username){
+        User user = userRepository.findOneWithAuthoritiesByUsername(username)
+                .orElseThrow(()-> new RuntimeException("Could not find user with email"));
+
+        List<Note> userNotes = noteRepository.findByUserOrderByCreatedAtDesc(user);
+
+        List<RecentNoteDTO> recentNoteDTOS = userNotes.stream()
+                .limit(3)
+                .map(RecentNoteDTO::fromEntity)
+                .collect(Collectors.toList());
+        return recentNoteDTOS;
     }
 }

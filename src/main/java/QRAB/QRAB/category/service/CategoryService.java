@@ -148,14 +148,14 @@ public class CategoryService {
                 .map(CategoryResponseDTO::fromEntity)
                 .collect(Collectors.toList());*/
 
-        User user = userRepository.findOneWithAuthoritiesByUsername(username)
+        /*User user = userRepository.findOneWithAuthoritiesByUsername(username)
                 .orElseThrow(()-> new RuntimeException("Could not find user with email"));
 
         List<Category> usersCategories = categoryRepository.findByUser(user);
         List<CategoryParentResponseDTO> categoryResponseDTOS = usersCategories.stream()
                 .map(CategoryParentResponseDTO::fromEntity)
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                .collect(Collectors.toList());*/
 
         Category parentCategory = categoryRepository.findById(parentId)
                 .orElseThrow(() -> new RuntimeException("Could not find parentId"));
@@ -166,7 +166,7 @@ public class CategoryService {
                 .collect(Collectors.toList());
 
         Map<String, Object> result = new HashMap<>();
-        result.put("parentCategories", categoryResponseDTOS);
+        //result.put("parentCategories", categoryResponseDTOS);
         result.put("childCategories", categoriesChildResponseDTOS);
         return ResponseEntity.ok(result);
 
