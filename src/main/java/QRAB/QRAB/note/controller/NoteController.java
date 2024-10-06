@@ -6,6 +6,7 @@ import QRAB.QRAB.category.service.CategoryService;
 import QRAB.QRAB.note.dto.BlogRequestDTO;
 import QRAB.QRAB.note.dto.FileRequestDTO;
 import QRAB.QRAB.note.dto.NoteResponseDTO;
+import QRAB.QRAB.note.dto.RecentNoteDTO;
 import QRAB.QRAB.note.service.NoteService;
 import QRAB.QRAB.note.service.UrlCrawlerService;
 import QRAB.QRAB.note.service.FileCrawlerService;
@@ -79,12 +80,48 @@ public class NoteController {
         // 노트의 제목, 요약본 (10자), 카테고리 조회
         List<NoteResponseDTO> sixNotesInfo = noteService.getUserRecentNotes(username, page);
 
+        // 최근 노트 3개 조회
+        List<RecentNoteDTO> threeNoteInfo = noteService.getUserRecentNotesBy3(username);
+
         Map<String, Object> result = new HashMap<>();
         result.put("parentCategories", parentCategories);
         result.put("childCategories", childCategories);
         result.put("sixNotesInfo", sixNotesInfo);
+        result.put("threeNoteInfo", threeNoteInfo);
 
         return ResponseEntity.ok(result);
 
     }
+
+
+    @GetMapping("/{categoryId}")
+    public ResponseEntity<?> getNotePageByCategory(@PathVariable("categoryId") Long categoryId, @RequestParam(name = "page", defaultValue = "0") int page) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        // 사용자가 생성한 상위 카테고리 조회
+        List<CategoryParentResponseDTO> parentCategories = categoryService.getUserParentCategories(username);
+
+        // 하위 카테고리 조회
+        List<CategoryChildResponseDTO> childCategories = categoryService.getUserChildCategories(username);
+
+        List<NoteResponseDTO> sixNotesInfo;
+
+        // 카테고리 ID가 제공된 경우 해당 카테고리의 노트 조회, 그렇지 않으면 최신 노트 조회
+        sixNotesInfo = noteService.getNotesByCategory(username, categoryId, page);
+
+
+        // 최근 노트 3개 조회
+        List<RecentNoteDTO> threeNoteInfo = noteService.getUserRecentNotesBy3(username);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("parentCategories", parentCategories);
+        result.put("childCategories", childCategories);
+        result.put("sixNotesInfo", sixNotesInfo);
+        result.put("threeNoteInfo", threeNoteInfo);
+
+        return ResponseEntity.ok(result);
+    }
+
+
 }

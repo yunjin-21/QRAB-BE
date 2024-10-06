@@ -1,6 +1,8 @@
 package QRAB.QRAB.user.service;
 
 
+import QRAB.QRAB.profile.domain.Profile;
+import QRAB.QRAB.profile.repository.ProfileRepository;
 import QRAB.QRAB.user.domain.Authority;
 import QRAB.QRAB.user.domain.User;
 import QRAB.QRAB.user.dto.MajorResponseDTO;
@@ -24,6 +26,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final MajorRepository majorRepository;
+
+    private final ProfileRepository profileRepository;
 
     @Transactional
     public boolean checkEmailDuplicate(String email) {
@@ -57,8 +61,18 @@ public class UserService {
                 .majors(majorSet)
                 .build();
 
+        // Profile 엔티티 생성 (User와 연관)
+        Profile profile = Profile.builder()
+                .user(user) // User와 연결
+                .nickname(userDto.getNickname()) // User와 동일한 값 설정
+                .email(userDto.getUsername())    // User의 이메일을 Profile에도 사용
+                .phoneNumber(userDto.getPhoneNumber()) // User의 전화번호를 Profile에도 사용
+                .build();
+        // User와 Profile을 함께 저장
+        user.setProfile(profile);
 
         User savedUser = userRepository.save(user);
+        profileRepository.save(profile);
         return UserDTO.from(savedUser); //api 응답의 일관성유지와 User 엔티티 보호를 위해 UserDto 로 변환해서 반환
     }
 

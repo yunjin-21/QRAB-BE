@@ -23,7 +23,7 @@ public class ChatgptService {
     }
 
     public String getSummary(String content){
-        String prompt = content + "위의 블로그 내용에서 중요한 부분을 정확하게 잘 요약해줘";// 요약 프롬프팅하기
+        String prompt = content + "위 내용의 핵심 개념과 주요 정보를 포함하여, A4 용지 1페이지 분량으로 간결하고 정확하게 요약해줘. 중요한 통계나 데이터, 구체적인 예시가 있다면 꼭 포함하고, 불필요한 세부 사항은 제외해줘. 요약은 논리적인 흐름이 유지되도록 작성하고, 각 문단의 길이가 고르게 분포되도록 해줘.";// 요약 프롬프팅하기
 
         ChatgptRequestDTO chatgptRequestDTO = new ChatgptRequestDTO(model, prompt);//DTO 요청 생성
         // postForObject(String url, Object request, Class<T> responseType)

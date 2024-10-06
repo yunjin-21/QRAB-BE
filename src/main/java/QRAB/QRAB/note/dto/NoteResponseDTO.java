@@ -17,7 +17,7 @@ public class NoteResponseDTO {
         return new NoteResponseDTO(
                 note.getId(),
                 note.getTitle(),
-                note.getChatgptContent().length() > 10 ? note.getChatgptContent().substring(0, 10) : note.getChatgptContent(),
+                note.getChatgptContent().length() > 30 ? note.getChatgptContent().substring(0, 30) : note.getChatgptContent(),
                 note.getCategory().getName(),
                 note.getCategory().getParentCategory() != null ? note.getCategory().getParentCategory().getName() : "");
     }
