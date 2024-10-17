@@ -50,7 +50,7 @@ public class ChatgptService {
         Now, summarize the following content in a similar style, but this time, make it as detailed and comprehensive as possible to fill an A4 page. The summary should be thorough, ensuring all key details and examples are covered while maintaining a logical structure and flow. 
         """;
 
-        // 사용자 입력 데이터와 결합된 프롬프트 생성
+        // 사용자 입력 데이터와 결합된 프롬프트 생성//
         String prompt = fewShotExamples + "\n" + content +
                 "\n\nSummarize this content in a concise, organized format like the above examples. Focus on key concepts and maintain logical flow.";
 
