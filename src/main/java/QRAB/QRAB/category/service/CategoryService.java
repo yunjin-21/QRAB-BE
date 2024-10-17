@@ -83,8 +83,32 @@ public class CategoryService {
 
 
     @Transactional(readOnly = false)
-    public void deleteCategory(Long categoryId, String userEmail) throws Exception{ //자식 카테고리 삭제
-        Category category = categoryRepository.findById(categoryId)
+    public void deleteCategory(List<Long> categoryIds, String userEmail) throws Exception{ //자식 카테고리 삭제
+        for (Long categoryId : categoryIds) {
+            Category category = categoryRepository.findById(categoryId)
+                    .orElseThrow(() -> new RuntimeException("Could not find category ID: " + categoryId));
+
+            if (!category.getUser().getUsername().equals(userEmail)) {
+                throw new RuntimeException("Don't have permission to delete category ID: " + categoryId);
+            }
+
+            // 자식 카테고리 목록 조회
+            List<Category> categoryChildList = categoryRepository.findByParentCategory(category);
+
+            // 자식이 있을 경우 부모 카테고리는 삭제 불가
+            if (categoryChildList.isEmpty()) {
+                categoryRepository.delete(category);
+            } else if (categoryChildList.stream().allMatch(child -> categoryIds.contains(child.getId()))) {
+                // 자식들이 모두 삭제 요청 목록에 포함되어 있다면 부모와 자식 모두 삭제
+                for (Category child : categoryChildList) {
+                    categoryRepository.delete(child);
+                }
+                categoryRepository.delete(category);
+            } else {
+                throw new RuntimeException("Category ID: " + categoryId + " cannot be deleted due to existing child categories.");
+            }
+        }
+        /*Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new RuntimeException("Could not find category ID"));
         if(!category.getUser().getUsername().equals(userEmail)){
             throw new RuntimeException("Don't have permission to delete category");
@@ -96,7 +120,7 @@ public class CategoryService {
             categoryRepository.delete(category);
         }else{
                 throw new RuntimeException("Category cannot be deleted");//자식 카테고리 존재해서 부모 카테고리 삭제 불가
-        }
+        }*/
     }
 
     @Transactional(readOnly = false)

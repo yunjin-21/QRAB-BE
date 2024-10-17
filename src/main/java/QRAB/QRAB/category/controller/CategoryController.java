@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 
 @RequestMapping("/categories")
 @RestController //http 요청을 처리하고 json 형식으로 데이터를 반환 - restful web service  @controller와 @responseBody를 함께 사용
@@ -41,11 +42,11 @@ public class CategoryController {
 
 
 
-    @DeleteMapping("/{categoryId}") //category 삭제는 자식만 가능 + 자식이 없을 경우 부모도 삭제가능
-    public ResponseEntity<?> deleteCategory(@PathVariable("categoryId")Long categoryId){
+    @DeleteMapping("/") //category 삭제는 자식만 가능 + 자식이 없을 경우 부모도 삭제가능
+    public ResponseEntity<?> deleteCategory(@RequestBody List<Long> categoryIds){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         try{
-            categoryService.deleteCategory(categoryId, authentication.getName());
+            categoryService.deleteCategory(categoryIds, authentication.getName());
             return ResponseEntity.ok("Category is deleted successfully");
         }catch (Exception e) {
             throw new RuntimeException(e);

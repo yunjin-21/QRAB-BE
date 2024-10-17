@@ -37,6 +37,7 @@ public class Profile {
     @Column(name = "phone_number", length = 11)
     private String phoneNumber;//전화번호
 
+
     //알림 설정 필드
 
     @Builder
