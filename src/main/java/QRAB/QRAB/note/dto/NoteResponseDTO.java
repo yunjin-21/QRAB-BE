@@ -12,13 +12,16 @@ public class NoteResponseDTO {
     private String chatgptContent;
     private String categoryName;
     private String parentCategoryName;
+    private String fileOrUrl;
 
-    public static NoteResponseDTO fromEntity(Note note){
+    public static NoteResponseDTO fromEntity(Note note) {
         return new NoteResponseDTO(
                 note.getId(),
                 note.getTitle(),
-                note.getChatgptContent().length() > 30 ? note.getChatgptContent().substring(0, 30) : note.getChatgptContent(),
+                note.getChatgptContent().length() > 100 ? note.getChatgptContent().substring(0, 100) : note.getChatgptContent(),
                 note.getCategory().getName(),
-                note.getCategory().getParentCategory() != null ? note.getCategory().getParentCategory().getName() : "");
+                note.getCategory().getParentCategory() != null ? note.getCategory().getParentCategory().getName() : "",
+                note.getUrl() != null ? note.getUrl() : note.getFile()
+        );
     }
 }
