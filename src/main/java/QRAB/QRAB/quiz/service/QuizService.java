@@ -41,6 +41,9 @@ public class QuizService {
         User user = userService.getUserById(requestDTO.getUserId());
         Note note = noteRepository.findById(requestDTO.getNoteId())
                 .orElseThrow(() -> new RuntimeException("노트를 찾을 수 없습니다."));
+        // 퀴즈 생성 시 노트의 퀴즈 생성 횟수 증가
+        note.setQuizGenerationCount(note.getQuizGenerationCount() + 1);
+        noteRepository.save(note);
 
         // 2. 퀴즈 세트 생성 및 저장
         QuizSet quizSet = new QuizSet();

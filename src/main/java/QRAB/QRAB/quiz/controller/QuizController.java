@@ -1,11 +1,14 @@
 package QRAB.QRAB.quiz.controller;
 
+import QRAB.QRAB.note.dto.QuizLabNoteResponseDTO;
+import QRAB.QRAB.note.service.NoteService;
 import QRAB.QRAB.quiz.dto.QuizSetDTO;
 import QRAB.QRAB.quiz.dto.QuizGenerationRequestDTO;
 import QRAB.QRAB.quiz.domain.Quiz;
 import QRAB.QRAB.quiz.service.QuizService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -13,10 +16,12 @@ import java.util.List;
 @RequestMapping("/quiz-lab")
 public class QuizController {
     private final QuizService quizService;
+    private final NoteService noteService;
 
     @Autowired
-    public QuizController(QuizService quizService){
+    public QuizController(QuizService quizService, NoteService noteService){
         this.quizService = quizService;
+        this.noteService = noteService;
     }
 
     // 퀴즈 세트 생성 엔드포인트
@@ -33,4 +38,15 @@ public class QuizController {
         return ResponseEntity.ok(quizzes);
     }
 
+    // 저장된 노트 리스트 조회 엔드포인트 (퀴즈 연구소 화면용)
+    @GetMapping("/notes")
+    public ResponseEntity<List<QuizLabNoteResponseDTO>> getStoredNotesForQuizLab(
+            @RequestParam(name = "page", defaultValue = "0") int page) {
+        // SecurityContextHolder를 사용하여 인증된 사용자 정보 가져오기
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        // 인증된 사용자의 노트 목록 조회
+        List<QuizLabNoteResponseDTO> storedNotes = noteService.getStoredNotesForQuizLab(page);
+        return ResponseEntity.ok(storedNotes);
+    }
 }
