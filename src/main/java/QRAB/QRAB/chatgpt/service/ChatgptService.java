@@ -35,31 +35,30 @@ public class ChatgptService {
 
 }*/
     public String getSummary(String content) {
-        // Few-Shot Prompting 예시
         String fewShotExamples = """
-        Here are examples of how to summarize technical content in the desired format:
+        Here are examples of how to summarize AI-related technical content in the desired format:
 
         Example 1:
-        컴퓨터 구조 개요
-        컴퓨터는 하드웨어와 소프트웨어로 구성된다. 하드웨어는 CPU, RAM, ROM, SSD, HDD와 같은 저장 장치, 그리고 입출력 장치로 나뉜다. CPU는 컴퓨터의 두뇌 역할을 하며, RAM은 휘발성 메모리로 데이터를 임시 저장하고, ROM은 부팅에 필요한 데이터를 저장하는 비휘발성 메모리다. 소프트웨어는 운영체제와 응용 소프트웨어로 나뉜다.
+        머신러닝 개요
+        머신러닝은 데이터를 기반으로 학습하여 예측하는 알고리즘이다. 지도 학습과 비지도 학습으로 나뉘며, 지도 학습은 라벨이 있는 데이터를 사용하고, 비지도 학습은 라벨이 없는 데이터를 클러스터링하는 방식이다. 주요 알고리즘으로는 선형 회귀, 로지스틱 회귀, K-최근접 이웃(KNN), K-평균(K-means) 등이 있다. 이외에도 딥러닝은 신경망을 사용해 복잡한 패턴을 학습하는 방법이다.
 
         Example 2:
-        데이터 표현
-        컴퓨터에서 데이터는 수치와 비수치 데이터로 구분된다. 보수 개념은 덧셈을 통해 뺄셈을 수행하는데, 2의 보수는 1의 보수를 구한 뒤 +1을 더해 음수를 쉽게 계산한다. 10진수와 2진수 변환 시 unpacked decimal과 packed decimal 변환이 필요하다.
+        자연어 처리(NLP)
+        자연어 처리는 컴퓨터가 인간의 언어를 이해하고 생성하는 기술이다. 주요 과제로는 텍스트 분류, 감정 분석, 기계 번역 등이 있으며, BERT와 GPT와 같은 사전 훈련된 언어 모델이 NLP에서 자주 사용된다. 텍스트 데이터의 전처리 과정은 토큰화, 정규화, 불용어 제거 등이 포함되며, 이 과정을 통해 모델의 성능을 높일 수 있다.
 
-        Now, summarize the following content in a similar style, but this time, make it as detailed and comprehensive as possible to fill an A4 page. The summary should be thorough, ensuring all key details and examples are covered while maintaining a logical structure and flow. 
+        Now, summarize the following content in a similar style, making it clear and detailed. The summary should cover key concepts, provide specific examples, and maintain a logical flow throughout. Focus on key concepts and maintain logical flow.
         """;
 
-        // 사용자 입력 데이터와 결합된 프롬프트 생성
-        String prompt = fewShotExamples + "\n" + content +
-                "\n\nSummarize this content in a concise, organized format like the above examples. Focus on key concepts and maintain logical flow.";
+        String prompt = fewShotExamples + "\n\n" + content + """
+        
+        Summarize this content in a concise, organized format like the above examples. When you print it out, don't get # or *, just get the text. Focus on key concepts and maintain logical flow. Make it as detailed and comprehensive as possible, enough to fill an A4 page.
+        """;
 
-        // ChatgptRequestDTO 생성
         ChatgptRequestDTO chatgptRequestDTO = new ChatgptRequestDTO(model, prompt);
 
-        // API 요청 및 응답 처리
         ChatgptResponseDTO chatgptResponseDTO = restTemplate.postForObject(apiUrl, chatgptRequestDTO, ChatgptResponseDTO.class);
 
         return chatgptResponseDTO != null ? chatgptResponseDTO.getFirstChoiceContent() : "";
     }
+
 }
