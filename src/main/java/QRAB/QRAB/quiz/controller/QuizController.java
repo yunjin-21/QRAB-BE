@@ -2,11 +2,13 @@ package QRAB.QRAB.quiz.controller;
 
 import QRAB.QRAB.note.dto.QuizLabNoteResponseDTO;
 import QRAB.QRAB.note.service.NoteService;
+import QRAB.QRAB.quiz.dto.QuizResultDTO;
 import QRAB.QRAB.quiz.dto.QuizSetDTO;
 import QRAB.QRAB.quiz.dto.QuizGenerationRequestDTO;
 import QRAB.QRAB.quiz.domain.Quiz;
 import QRAB.QRAB.quiz.service.QuizService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -42,11 +44,21 @@ public class QuizController {
     @GetMapping("/notes")
     public ResponseEntity<List<QuizLabNoteResponseDTO>> getStoredNotesForQuizLab(
             @RequestParam(name = "page", defaultValue = "0") int page) {
-        // SecurityContextHolder를 사용하여 인증된 사용자 정보 가져오기
+        // 인증된 사용자의 정보를 SecurityContextHolder를 통해 가져오는 부분을 유지
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
         // 인증된 사용자의 노트 목록 조회
         List<QuizLabNoteResponseDTO> storedNotes = noteService.getStoredNotesForQuizLab(page);
         return ResponseEntity.ok(storedNotes);
     }
+
+    // status가 solved인 퀴즈 세트 조회 엔드포인트 (퀴즈 저장소 화면용)
+    @GetMapping("/quizzes")
+    public ResponseEntity<Page<QuizResultDTO>> getSolvedQuizSets(
+            @RequestParam(name = "page", defaultValue = "0") int page) {
+        Page<QuizResultDTO> solvedQuizSets = quizService.getSolvedQuizSets(page);
+        return ResponseEntity.ok(solvedQuizSets);
+    }
+
+
 }

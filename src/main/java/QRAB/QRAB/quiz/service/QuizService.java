@@ -1,17 +1,23 @@
 package QRAB.QRAB.quiz.service;
 
+import QRAB.QRAB.quiz.domain.QuizResult;
 import QRAB.QRAB.quiz.dto.QuizGenerationRequestDTO;
+import QRAB.QRAB.quiz.dto.QuizResultDTO;
 import QRAB.QRAB.quiz.dto.QuizSetDTO;
 import QRAB.QRAB.quiz.domain.Quiz;
 import QRAB.QRAB.quiz.domain.QuizSet;
 import QRAB.QRAB.chatgpt.service.ChatgptService;
 import QRAB.QRAB.quiz.repository.QuizRepository;
+import QRAB.QRAB.quiz.repository.QuizResultRepository;
 import QRAB.QRAB.quiz.repository.QuizSetRepository;
 import QRAB.QRAB.note.domain.Note;
 import QRAB.QRAB.note.repository.NoteRepository;
 import QRAB.QRAB.user.domain.User;
 import QRAB.QRAB.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -26,14 +32,18 @@ public class QuizService {
     private final ChatgptService chatgptService;
     private final UserService userService;
     private final NoteRepository noteRepository;
+    private final QuizResultRepository quizResultRepository;
 
     @Autowired
-    public QuizService(QuizRepository quizRepository, QuizSetRepository quizSetRepository, ChatgptService chatgptService, UserService userService, NoteRepository noteRepository) {
+    public QuizService(QuizRepository quizRepository, QuizSetRepository quizSetRepository,
+                       ChatgptService chatgptService, UserService userService,
+                       NoteRepository noteRepository, QuizResultRepository quizResultRepository) {
         this.quizRepository = quizRepository;
         this.quizSetRepository = quizSetRepository;
         this.chatgptService = chatgptService;
         this.userService = userService;
         this.noteRepository = noteRepository;
+        this.quizResultRepository = quizResultRepository;
     }
 
     public QuizSetDTO createQuizSet(QuizGenerationRequestDTO requestDTO) {
@@ -117,25 +127,41 @@ public class QuizService {
         return new QuizSetDTO(quizSet);
     }
 
-    /*
-    // 퀴즈 파싱 및 저장 로직
-    private List<Quiz> parseAndSaveQuizzes(String gptResponse, Long quizSetId) {
-        List<Quiz> quizzes = new ArrayList<>();
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            quizzes = mapper.readValue(gptResponse, new TypeReference<List<Quiz>>(){});
-            for(Quiz quiz : quizzes){
-                quiz.setQuizSet(quizSetRepository.findById(quizSetId).orElseThrow(() -> new RuntimeException("퀴즈 세트가 존재하지 않습니다.")));
-                quizRepository.save(quiz);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return quizzes;
-    }
-     */
-
     public List<Quiz> getQuizzesByQuizSetId(Long quizSetId){
         return quizRepository.findByQuizSet_QuizSetId(quizSetId);
     }
+
+    public Page<QuizResultDTO> getSolvedQuizSets(int page) {
+        Pageable pageable = PageRequest.of(page, 6); // 한 페이지에 6개의 퀴즈 세트
+        Page<QuizResult> quizResults = quizResultRepository.findAllSolvedQuizSets(pageable);
+
+        return quizResults.map(this::convertToDto);
+    }
+
+    private QuizResultDTO convertToDto(QuizResult quizResult) {
+        QuizSet quizSet = quizResult.getQuizSet();
+        Note note = quizSet.getNote();
+
+        // 정답/오답 개수 계산
+        int correctCount = quizResult.getCorrectCount();
+        int totalQuestions = quizResult.getTotalQuestions();
+        String answerSummary = (correctCount > totalQuestions / 2) ?
+                "정답 " + correctCount + "문제" : "오답 " + (totalQuestions - correctCount) + "문제";
+
+        // Note에서 카테고리 정보 가져오기
+        String categoryName = note.getCategory().getName();
+        String parentCategoryName = note.getCategory().getParentCategory() != null ? note.getCategory().getParentCategory().getName() : "";
+
+        return new QuizResultDTO(
+                note.getTitle(),
+                totalQuestions,
+                quizSet.getCreatedAt().toLocalDate().toString(),
+                quizResult.getTakenAt().toLocalDate().toString(),
+                answerSummary,
+                categoryName,
+                parentCategoryName
+        );
+    }
+
+
 }
