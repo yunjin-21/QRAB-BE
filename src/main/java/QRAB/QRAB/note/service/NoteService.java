@@ -97,4 +97,12 @@ public class NoteService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public long getUserTotalNotesCount(String username) {
+        User user = userRepository.findOneWithAuthoritiesByUsername(username)
+                .orElseThrow(()-> new RuntimeException("Could not find user with email"));
+
+        return noteRepository.countByUser(user);
+    }
+
 }
