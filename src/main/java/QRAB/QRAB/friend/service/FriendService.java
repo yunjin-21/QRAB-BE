@@ -90,20 +90,13 @@ public class FriendService {
         result.put("majorIds", userProfileResponse.getMajorNames());
 
 
-        //친구 목록을 반환 아이디 + 닉네임 + 노트 아이디
-        List<Friendship> friendships = user.getFriends();
+        //친구 목록을 반환
+        // firendshipId 아이디 + 닉네임 + 프로필 사진 추가하기
+        List<Friendship> friendships = friendRepository.findByUser(user);
         List<FriendResponseDTO> friendResponseDTOs = friendships.stream()
-                .map(friendship -> {
-                    User friend = friendship.getFriend(); // 친구 객체 찾기
-                    if (friend == null) {
-                        // 친구가 null인 경우 기본값 또는 예외 처리
-                        return null;
-                    }
-                    List<Note> notes = noteRepository.findByUser(friend); // 친구가 만든 노트 리스트 찾기
-                    return FriendResponseDTO.fromEntity(friend, notes);
-                })
-                .filter(Objects::nonNull) // null 필터링
-                .collect(Collectors.toList());
+                        .map(FriendResponseDTO::fromEntity)
+                        .collect(Collectors.toList());
+
         result.put("friendships", friendResponseDTOs);
 
         return ResponseEntity.ok(result);
@@ -120,14 +113,14 @@ public class FriendService {
         if(friendship.getUser().equals(user)){
             friendEmail = friendship.getFriend().getUsername();
         }
-        // 사용자가 생성한 상위 카테고리 조회
-        List<CategoryParentResponseDTO> parentCategories = categoryService.getUserParentCategories(friendEmail);
+        // 친구가 생성한 상위 카테고리 조회 - 단 친구의 노트가 0인 경우의 카테고리만 필터링해서 제공
+        List<CategoryParentResponseDTO> parentCategories = categoryService.getFriendParentCategories(friendEmail);
 
         // 하위 카테고리 조회
-        List<CategoryChildResponseDTO> childCategories = categoryService.getUserChildCategories(friendEmail);
+        List<CategoryChildResponseDTO> childCategories = categoryService.getFriendChildCategories(friendEmail);
 
         // 노트의 제목, 요약본 (10자), 카테고리 조회
-        List<NoteResponseDTO> sixNotesInfo = noteService.getUserRecentNotes(friendEmail, page);
+        List<NoteResponseDTO> sixNotesInfo = noteService.getFriendNotesByUser(friendEmail, page);
 
         Map<String, Object> result = new HashMap<>();
         result.put("parentCategories", parentCategories);

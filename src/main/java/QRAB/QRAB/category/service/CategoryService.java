@@ -151,6 +151,21 @@ public class CategoryService {
                 .collect(Collectors.toList()); // 카테고리 엔티티 객체로부터 DTO로 변환하여 반환
         return categoryResponseDTOS;
     }
+
+    @Transactional(readOnly = true)
+    public List<CategoryParentResponseDTO> getFriendParentCategories(String username){
+        User user = userRepository.findOneWithAuthoritiesByUsername(username)
+                .orElseThrow(()-> new RuntimeException("Could not find user with email"));
+
+        List<Category> categories = categoryRepository.findByUser(user);
+        List<CategoryParentResponseDTO> categoryResponseDTOS = categories.stream()
+                .filter(category -> category.getNotes().stream().anyMatch(note -> note.getRestrictedAccess() == 0))
+                .map(CategoryParentResponseDTO::fromEntity)
+                .filter(Objects::nonNull) // 필터링하여 null 값 제거
+                .collect(Collectors.toList()); // 카테고리 엔티티 객체로부터 DTO로 변환하여 반환
+        return categoryResponseDTOS;
+    }
+
     @Transactional(readOnly = true)
     public List<CategoryChildResponseDTO> getUserChildCategories(String username){
         User user = userRepository.findOneWithAuthoritiesByUsername(username)
@@ -164,6 +179,19 @@ public class CategoryService {
         return categoryResponseDTOS;
     }
 
+    @Transactional(readOnly = true)
+    public List<CategoryChildResponseDTO> getFriendChildCategories(String username){
+        User user = userRepository.findOneWithAuthoritiesByUsername(username)
+                .orElseThrow(()-> new RuntimeException("Could not find user with email"));
+
+        List<Category> categories = categoryRepository.findByUser(user);
+        List<CategoryChildResponseDTO> categoryResponseDTOS = categories.stream()
+                .filter(category -> category.getNotes().stream().anyMatch(note -> note.getRestrictedAccess() == 0))
+                .map(CategoryChildResponseDTO::fromEntity)
+                .filter(Objects::nonNull) //필터링해 null 값 제거
+                .collect(Collectors.toList()); // 카테고리 엔티티 객체로부터 DTO로 변환하여 반환
+        return categoryResponseDTOS;
+    }
 
     @Transactional(readOnly = false)
     public ResponseEntity<?> getChildWithParent(Long parentId, String username){
