@@ -7,6 +7,8 @@ import QRAB.QRAB.user.domain.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,4 +20,8 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
     long countByUser(User user); // 유저에 따른 노트 개수 반환
     List<Note> findByUserOrderByCreatedAtDesc(User user);
     Page<Note> findByCategoryAndUser(Category category, User user, Pageable pageable);
+
+    // 다수의 Category를 받는 새 메서드
+    @Query("SELECT n FROM Note n WHERE n.category IN :categories AND n.user = :user")
+    Page<Note> findByCategoriesAndUser(@Param("categories") List<Category> categories, @Param("user") User user, Pageable pageable);
 }

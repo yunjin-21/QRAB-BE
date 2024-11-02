@@ -18,6 +18,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,8 +59,15 @@ public class NoteService {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new RuntimeException("Could not find category with ID: " + categoryId));
 
+        List<Category> categories = new ArrayList<>();
+        if(category.getParentCategory() == null){
+            categories.add(category);
+            categories.addAll(categoryRepository.findByParentCategory(category));
+        }else{
+            categories.add(category);
+        }
         Pageable pageable = PageRequest.of(page, 6, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Note> notes = noteRepository.findByCategoryAndUser(category, user, pageable);
+        Page<Note> notes = noteRepository.findByCategoriesAndUser(categories, user, pageable);
 
         return notes.getContent().stream()
                 .map(NoteResponseDTO::fromEntity)
