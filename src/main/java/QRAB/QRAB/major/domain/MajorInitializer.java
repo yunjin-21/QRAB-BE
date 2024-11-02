@@ -13,34 +13,25 @@ public class MajorInitializer {
     @Transactional
     public CommandLineRunner initMajor(MajorRepository majorRepository) {
         return args -> {
-            // 자유계열
-            String[] hokmaMajors = {
-                    "인문사회자유전공",
-                    "인문자연자유전공",
-                    "인문사회융합전공",
-                    "인문자연융합전공"
-            };
-            saveMajors(majorRepository, "자유계열", hokmaMajors);
 
             // 인문계열
             String[] humanitiesMajors = {
-                    "국어국문학과",
-                    "독일어문학과",
-                    "러시아어문학과",
-                    "스페인어문학과",
+                    "국어·국문학과",
+                    "독일어·문학과",
+                    "러시아어·문학과",
+                    "스페인어·문학과",
                     "언어학과",
-                    "영미어문학과",
-                    "일본어문학과",
-                    "중국어문학과",
-                    "프랑스어문학과",
-                    "복수어문학과",
-                    "기타동양어문학과",
-                    "기타서양어문학과",
+                    "영미·어문학과",
+                    "일본어·문학과",
+                    "중국어·문학과",
+                    "프랑스어·문학과",
+                    "기타동양어·문학과",
+                    "기타서양어·문학과",
                     "문예창작학과",
-                    "문화인류-민속-미술사학과",
-                    "역사고고학과",
+                    "미술사학과",
+                    "역사·고고학과",
                     "종교학과",
-                    "철학윤리학과",
+                    "철학·윤리학과",
                     "교양인문학부"
             };
             saveMajors(majorRepository, "인문계열", humanitiesMajors);
@@ -48,23 +39,23 @@ public class MajorInitializer {
             // 사회계열
             String[] socialMajors = {
                     "경영학과",
-                    "경영정보학과",
                     "경제학과",
-                    "금융회계세무학과",
-                    "무역유통학과",
+                    "금융·회계·세무학과",
+                    "무역·유통학과",
                     "관광학과",
-                    "광고홍보소비자학과",
+                    "광고·홍보·소비자학과",
                     "법학과",
-                    "아동가족복지학과",
+                    "아동·가족·복지학과",
                     "국제학과",
-                    "도시지리부동산학과",
+                    "도시·지리·부동산학과",
                     "문헌정보학과",
                     "사회학과",
                     "심리학과",
-                    "언론방송매체학과",
+                    "언론·방송·매체학과",
                     "정치외교학과",
                     "행정학과",
-                    "경찰소방군사학과"
+                    "경찰·소방·군사학과",
+                    "교양사회학과"
             };
             saveMajors(majorRepository, "사회계열", socialMajors);
 
@@ -74,22 +65,13 @@ public class MajorInitializer {
                     "초등교육학과",
                     "교육학과",
                     "영어교육학과",
-                    "언어교육학과",
-                    "특수교육학과",
                     "사회교육학과",
-                    "국어교육학과"
+                    "국어교육학과",
+                    "언어교육학과",
+                    "특수교육학과"
             };
             saveMajors(majorRepository, "교육계열", educationMajors);
 
-
-            // 자유계열
-            String[] hokmaMajors2 = {
-                    "자연과학자유전공",
-                    "인문자연자유전공",
-                    "자연과학융합전공",
-                    "인문자연웅합전공"
-            };
-            saveMajors(majorRepository, "자유계열", hokmaMajors2);
 
             // 교육계열
             String[] educationMajors2 = {
@@ -120,7 +102,7 @@ public class MajorInitializer {
                     "반도체공학과",
                     "컴퓨터·소프트웨어공학과",
                     "의료공학과",
-                    "전기·전자공학과",
+                    "전자·전기공학과",
                     "정보·통신공학과",
                     "고분자·화학공학과",
                     "생명공학과",
@@ -134,7 +116,7 @@ public class MajorInitializer {
                     "농업·작물·산림·원예학과",
                     "식품가공학과",
                     "동물·축산학과",
-                    "미용과학과",
+                    "미용·과학과",
                     "식품영양·조리학과",
                     "의류·의상학과",
                     "주거학과",
@@ -156,11 +138,11 @@ public class MajorInitializer {
                     "의예과",
                     "치의예과",
                     "한의예과",
+                    "보건학과",
                     "재활학과",
                     "임상보건학과",
                     "약과학과",
-                    "수의예과",
-                    "보건학과"
+                    "수의예과"
             };
             saveMajors(majorRepository, "의약계열", medicalMajors);
 
@@ -174,8 +156,7 @@ public class MajorInitializer {
 
             // 예체능계열
             String[] artsAndPEMajors = {
-                    "기타디자인학과",
-                    "디자인일반학과",
+                    "디자인학과",
                     "산업디자인학과",
                     "시각디자인학과",
                     "패션디자인학과",
@@ -189,7 +170,6 @@ public class MajorInitializer {
                     "기악과",
                     "성악과",
                     "실용음악학과",
-                    "음악학과",
                     "작곡과",
                     "영상콘텐츠학과"
             };
