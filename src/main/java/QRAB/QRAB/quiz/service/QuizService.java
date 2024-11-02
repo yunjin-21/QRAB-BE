@@ -163,7 +163,10 @@ public class QuizService {
                 quizSet.getNote().getTitle(),
                 quizSet.getCreatedAt(),
                 "미풀이", // 아직 안 풀었으므로 풀이 일자 X
-                quizSet.getStatus()
+                quizSet.getStatus(),
+                quizSet.getNote().getCategory().getName(),
+                quizSet.getNote().getCategory().getParentCategory() != null
+                        ? quizSet.getNote().getCategory().getParentCategory().getName() : null
         ));
     }
 
