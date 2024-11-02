@@ -15,7 +15,7 @@ import java.util.List;
 public interface NoteRepository extends JpaRepository<Note, Long> {
     List<Note> findByUser (User friend); //친구가 만든 노트 리스트 반환
     Page<Note> findByUser (User user, Pageable pageable);
-
+    long countByUser(User user); // 유저에 따른 노트 개수 반환
     List<Note> findByUserOrderByCreatedAtDesc(User user);
     Page<Note> findByCategoryAndUser(Category category, User user, Pageable pageable);
 }

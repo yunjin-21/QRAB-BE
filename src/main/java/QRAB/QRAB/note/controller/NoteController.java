@@ -82,12 +82,14 @@ public class NoteController {
 
         // 최근 노트 3개 조회
         List<RecentNoteDTO> threeNoteInfo = noteService.getUserRecentNotesBy3(username);
+        long totalNotesCount = noteService.getUserTotalNotesCount(username);
 
         Map<String, Object> result = new HashMap<>();
         result.put("parentCategories", parentCategories);
         result.put("childCategories", childCategories);
         result.put("sixNotesInfo", sixNotesInfo);
         result.put("threeNoteInfo", threeNoteInfo);
+        result.put("totalNotesCount", totalNotesCount);
 
         return ResponseEntity.ok(result);
 

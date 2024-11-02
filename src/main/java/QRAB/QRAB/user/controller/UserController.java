@@ -42,10 +42,10 @@ public class UserController {
             @Valid @RequestBody UserDTO userDto
     ) {
         // 학과 검증
-        if (userDto.getMajorIds() == null || userDto.getMajorIds().isEmpty()) {
+        if (userDto.getMajorNames() == null || userDto.getMajorNames().isEmpty()) {
             return ResponseEntity.badRequest().body("학과는 적어도 1개 이상 선택해야 합니다.");// 학과를 하나도 선택하지 않은 경우
         }
-        if (userDto.getMajorIds().size() > 3) {
+        if (userDto.getMajorNames().size() > 3) {
             return ResponseEntity.badRequest().body("학과는 최대 3개까지 선택할 수 있습니다.");// 학과를 3개 초과 선택한 경우
         }
         return ResponseEntity.ok(userService.signup(userDto));

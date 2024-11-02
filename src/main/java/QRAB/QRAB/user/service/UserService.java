@@ -37,6 +37,12 @@ public class UserService {
     public boolean checkNicknameDuplicate(String nickname) {
         return userRepository.findByNickname(nickname).isPresent();
     }
+    @Transactional(readOnly = true)
+    public User getUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다. ID: " + userId));
+    }
+
 
     @Transactional
     public UserDTO signup(UserDTO userDto) {
@@ -44,7 +50,8 @@ public class UserService {
             throw new DuplicateMemberException("이미 사용 중인 이메일입니다.");
         }
 
-        List<Major> majorList = majorRepository.findAllById(userDto.getMajorIds());
+        List<Major> majorList = majorRepository.findAllByNameIn(new ArrayList<>(userDto.getMajorNames()));
+        //List<Major> majorList = majorRepository.findAllById(userDto.getMajorIds());
         Set<Major> majorSet = new HashSet<>(majorList);
 
         Authority authority = Authority.builder()

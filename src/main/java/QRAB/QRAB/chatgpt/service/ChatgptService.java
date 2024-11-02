@@ -6,6 +6,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import QRAB.QRAB.quiz.domain.Quiz;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class ChatgptService {
@@ -60,5 +68,56 @@ public class ChatgptService {
 
         return chatgptResponseDTO != null ? chatgptResponseDTO.getFirstChoiceContent() : "";
     }
+    // 퀴즈 생성
+    public List<Quiz> generateQuiz(String quizPrompt) {
+        ChatgptRequestDTO chatgptRequestDTO = new ChatgptRequestDTO(model, quizPrompt);
+        ChatgptResponseDTO chatgptResponseDTO = restTemplate.postForObject(apiUrl, chatgptRequestDTO, ChatgptResponseDTO.class);
 
+        if (chatgptResponseDTO != null && chatgptResponseDTO.getFirstChoiceContent() != null) {
+            return parseQuizFromResponse(chatgptResponseDTO.getFirstChoiceContent());
+        }
+        return new ArrayList<>();
+    }
+
+    // GPT 응답을 Quiz 리스트로 변환
+    private List<Quiz> parseQuizFromResponse(String content) {
+        List<Quiz> quizzes = new ArrayList<>();
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            List<Map<String, Object>> quizMaps = mapper.readValue(content, new TypeReference<List<Map<String, Object>>>(){});
+
+            for (Map<String, Object> quizMap : quizMaps) {
+                Quiz quiz = new Quiz();
+                quiz.setDifficulty((String) quizMap.get("difficulty"));
+                quiz.setQuestion((String) quizMap.get("question"));
+
+                // choices 필드를 문자열 리스트로 변환
+                List<String> choices = ((List<?>) quizMap.get("choices")).stream()
+                        .map(Object::toString)
+                        .collect(Collectors.toList());
+                quiz.setChoicesAsList(choices);
+
+                // correct_answer 필드 처리
+                // Integer 또는 String일 가능성을 모두 고려하여 처리
+                Object correctAnswerObj = quizMap.get("correct_answer");
+                int correctAnswer;
+                if (correctAnswerObj instanceof Integer) {
+                    correctAnswer = (Integer) correctAnswerObj;
+                } else if (correctAnswerObj instanceof String) {
+                    correctAnswer = Integer.parseInt((String) correctAnswerObj);
+                } else {
+                    throw new IllegalArgumentException("Invalid correct_answer format: " + correctAnswerObj);
+                }
+                quiz.setCorrectAnswer(correctAnswer);
+
+                quiz.setExplanation((String) quizMap.get("explanation"));
+                quiz.setQuizSummary((String) quizMap.get("quiz_summary"));
+
+                quizzes.add(quiz);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return quizzes;
+    }
 }

@@ -46,8 +46,8 @@ public class UserDTO {
     @Size(min = 8, max = 16)  // 길이 제한 추가
     private String passwordConfirm;
 
-    private Set<Long> majorIds; // 학과 ID 목록
-
+    //private Set<Long> majorIds; // 학과 ID 목록
+    private Set<String> majorNames; //학과 이름 목록
     private Set<AuthorityDTO> authorityDtoSet;
 
     public static UserDTO from(User user) { //User 엔티티와 매핑하여 -> UserDTO 로 반환
@@ -56,8 +56,8 @@ public class UserDTO {
                 .username(user.getUsername())
                 .nickname(user.getNickname())
                 .phoneNumber(user.getPhoneNumber())
-                .majorIds(user.getMajors().stream()
-                        .map(Major::getId)
+                .majorNames(user.getMajors().stream()
+                        .map(Major::getName)
                         .collect(Collectors.toSet()))
                 .authorityDtoSet(user.getAuthorities().stream()
                         .map(authority -> AuthorityDTO.builder().authorityName(authority.getAuthorityName()).build())

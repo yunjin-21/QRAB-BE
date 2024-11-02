@@ -28,6 +28,8 @@ public class Note extends BaseTimeEntity {
     private String file;//파일 경로 - pdf, 사진
     private boolean restrictedAccess; //기본값 false : 공개
 
+    private int quizGenerationCount = 0; // 퀴즈 생성 횟수 (기본값 0)
+
     @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name="user_id")
     private User user;
 
@@ -35,7 +37,7 @@ public class Note extends BaseTimeEntity {
     private Category category;
 
     @Builder
-    public Note(String title, String content, String chatgptContent, String url, String file, boolean restrictedAccess, User user, Category category){
+    public Note(String title, String content, String chatgptContent, String url, String file, boolean restrictedAccess, User user, Category category, int quizGenerationCount){
         this.title = title;
         this.content = content;
         this.chatgptContent = chatgptContent;
@@ -44,5 +46,6 @@ public class Note extends BaseTimeEntity {
         this.restrictedAccess =restrictedAccess;
         this.user = user;
         this.category = category;
+        this.quizGenerationCount = quizGenerationCount;
     }
 }

@@ -1,6 +1,7 @@
 package QRAB.QRAB.category.controller;
 
 import QRAB.QRAB.category.dto.CategoryChildRequestDTO;
+import QRAB.QRAB.category.dto.CategoryDeleteRequestDTO;
 import QRAB.QRAB.category.dto.CategoryRequestDTO;
 import QRAB.QRAB.category.dto.CategoryUpdateDTO;
 import QRAB.QRAB.category.service.CategoryService;
@@ -42,16 +43,18 @@ public class CategoryController {
 
 
 
-    @DeleteMapping("/") //category 삭제는 자식만 가능 + 자식이 없을 경우 부모도 삭제가능
-    public ResponseEntity<?> deleteCategory(@RequestBody List<Long> categoryIds){
+    @DeleteMapping("") //category 삭제는 자식만 가능 + 자식이 없을 경우 부모도 삭제가능
+    public ResponseEntity<?> deleteCategory(@RequestBody CategoryDeleteRequestDTO request){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        request.validate();
         try{
-            categoryService.deleteCategory(categoryIds, authentication.getName());
+            categoryService.deleteCategory(request.getCategoryIds(), authentication.getName());
             return ResponseEntity.ok("Category is deleted successfully");
         }catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
+
 
     // 상위 카테고리 조회
     @GetMapping("/parent")//카테고리 조회 페이지 - parent id + parent name 만 보이게
