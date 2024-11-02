@@ -7,6 +7,7 @@ import QRAB.QRAB.quiz.dto.QuizSetDTO;
 import QRAB.QRAB.quiz.domain.Quiz;
 import QRAB.QRAB.quiz.domain.QuizSet;
 import QRAB.QRAB.chatgpt.service.ChatgptService;
+import QRAB.QRAB.quiz.dto.UnsolvedQuizSetResponseDTO;
 import QRAB.QRAB.quiz.repository.QuizRepository;
 import QRAB.QRAB.quiz.repository.QuizResultRepository;
 import QRAB.QRAB.quiz.repository.QuizSetRepository;
@@ -143,6 +144,27 @@ public class QuizService {
         Page<QuizResult> quizResults = quizResultRepository.findAllSolvedQuizSets(pageable);
 
         return quizResults.map(this::convertToDto);
+    }
+
+    //퀴즈 풀기 페이지 조회(unsolved quizset 조회)
+    public Page<UnsolvedQuizSetResponseDTO> findUnsolvedQuizSets(int page) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findOneWithAuthoritiesByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Could not find user with email: " + username));
+
+        // 한 페이지에 6개씩 페이징
+        Pageable pageable = PageRequest.of(page, 6);
+        Page<QuizSet> quizSets = quizSetRepository.findByUserAndStatus(user, "unsolved", pageable);
+
+        // 조회 결과 DTO로 변환하여 반환
+        return quizSets.map(quizSet -> new UnsolvedQuizSetResponseDTO(
+                quizSet.getQuizSetId(),
+                quizSet.getNote().getId(),
+                quizSet.getNote().getTitle(),
+                quizSet.getCreatedAt(),
+                "미풀이", // 아직 안 풀었으므로 풀이 일자 X
+                quizSet.getStatus()
+        ));
     }
 
     private QuizResultDTO convertToDto(QuizResult quizResult) {
