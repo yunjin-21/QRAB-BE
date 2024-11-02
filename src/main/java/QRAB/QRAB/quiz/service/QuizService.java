@@ -13,12 +13,15 @@ import QRAB.QRAB.quiz.repository.QuizSetRepository;
 import QRAB.QRAB.note.domain.Note;
 import QRAB.QRAB.note.repository.NoteRepository;
 import QRAB.QRAB.user.domain.User;
-import QRAB.QRAB.user.service.UserService;
+import QRAB.QRAB.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,35 +30,39 @@ import java.util.stream.Collectors;
 
 @Service
 public class QuizService {
+    private final UserRepository userRepository;
     private final QuizRepository quizRepository;
     private final QuizSetRepository quizSetRepository;
     private final ChatgptService chatgptService;
-    private final UserService userService;
     private final NoteRepository noteRepository;
     private final QuizResultRepository quizResultRepository;
 
     @Autowired
-    public QuizService(QuizRepository quizRepository, QuizSetRepository quizSetRepository,
-                       ChatgptService chatgptService, UserService userService,
-                       NoteRepository noteRepository, QuizResultRepository quizResultRepository) {
+    public QuizService(UserRepository userRepository, QuizRepository quizRepository, QuizSetRepository quizSetRepository,
+                       ChatgptService chatgptService, NoteRepository noteRepository, QuizResultRepository quizResultRepository) {
+        this.userRepository = userRepository;
         this.quizRepository = quizRepository;
         this.quizSetRepository = quizSetRepository;
         this.chatgptService = chatgptService;
-        this.userService = userService;
         this.noteRepository = noteRepository;
         this.quizResultRepository = quizResultRepository;
     }
 
     public QuizSetDTO createQuizSet(QuizGenerationRequestDTO requestDTO) {
-        // 1. 사용자와 노트 객체 가져오기
-        User user = userService.getUserById(requestDTO.getUserId());
+        // 1. SecurityContext에서 인증된 사용자 이메일을 가져옴
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findOneWithAuthoritiesByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Could not find user with email: " + username));
+
+        // 2. 노트 조회
         Note note = noteRepository.findById(requestDTO.getNoteId())
                 .orElseThrow(() -> new RuntimeException("노트를 찾을 수 없습니다."));
-        // 퀴즈 생성 시 노트의 퀴즈 생성 횟수 증가
+
+        // 3. 퀴즈 생성 시 노트의 퀴즈 생성 횟수 증가
         note.setQuizGenerationCount(note.getQuizGenerationCount() + 1);
         noteRepository.save(note);
 
-        // 2. 퀴즈 세트 생성 및 저장
+        // 4. 퀴즈 세트 생성 및 저장
         QuizSet quizSet = new QuizSet();
         quizSet.setUser(user);
         quizSet.setNote(note);
@@ -64,7 +71,7 @@ public class QuizService {
         quizSet.setCreatedAt(LocalDateTime.now());
         quizSetRepository.save(quizSet);
 
-        // 3. 사용자 전공 정보 가져오기
+        // 5. 사용자 전공 정보 가져오기
         Set<String> majorNames = user.getMajors().stream()
                 .map(major -> major.getName())
                 .collect(Collectors.toSet());
@@ -78,10 +85,10 @@ public class QuizService {
             majorInfo += ", 복수전공2: " + additionalMajors.get(1);
         }
 
-        // 4. 노트 요약 내용 가져오기
+        // 5. 노트 요약 내용 가져오기
         String noteSummary = note.getChatgptContent(); // 요약본을 가져옴
 
-        // 5. 퀴즈 생성 프롬프트 작성
+        // 6. 퀴즈 생성 프롬프트 작성
         String quizPrompt = String.format(
                 "다음은 사용자가 풀어야 할 퀴즈를 생성하는 요청입니다. 퀴즈는 객관식 사지선다형이며, 각 퀴즈에 대해 난이도, 질문, 선택지, 정답, 풀이, 퀴즈 요약을 포함해 주세요. 총 %d개의 퀴즈를 생성해 주세요.\n\n" +
                         "사용자의 전공 정보는 다음과 같습니다:\n" +
@@ -113,17 +120,17 @@ public class QuizService {
                 noteSummary
         );
 
-        // 6. GPT API 호출하여 퀴즈 생성
+        // 7. GPT API 호출하여 퀴즈 생성
         List<Quiz> quizzes = chatgptService.generateQuiz(quizPrompt);
 
-        // 7. 생성된 퀴즈를 데이터베이스에 저장
+        // 8. 생성된 퀴즈를 데이터베이스에 저장
         for (Quiz quiz : quizzes) {
             quiz.setQuizSet(quizSet);
             quiz.setChoicesAsList(quiz.getChoicesAsList()); // JSON 문자열로 변환 후 저장
             quizRepository.save(quiz);
         }
 
-        // 8. QuizSet DTO 생성하여 반환
+        // 9. QuizSet DTO 생성하여 반환
         return new QuizSetDTO(quizSet);
     }
 

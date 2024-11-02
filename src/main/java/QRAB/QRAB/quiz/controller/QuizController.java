@@ -47,8 +47,8 @@ public class QuizController {
         // 인증된 사용자의 정보를 SecurityContextHolder를 통해 가져오는 부분을 유지
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        // 인증된 사용자의 노트 목록 조회
-        List<QuizLabNoteResponseDTO> storedNotes = noteService.getStoredNotesForQuizLab(page);
+        // 노트 목록 조회
+        List<QuizLabNoteResponseDTO> storedNotes = noteService.getStoredNotesForQuizLab(username, page);
         return ResponseEntity.ok(storedNotes);
     }
 

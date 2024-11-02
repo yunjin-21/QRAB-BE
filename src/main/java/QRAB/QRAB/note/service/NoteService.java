@@ -15,7 +15,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -84,11 +83,10 @@ public class NoteService {
     // 추가: 퀴즈 연구소에서 사용될 저장된 노트 조회 메소드
 
     @Transactional(readOnly = true)
-    public List<QuizLabNoteResponseDTO> getStoredNotesForQuizLab(int page) {
+    public List<QuizLabNoteResponseDTO> getStoredNotesForQuizLab(String username, int page) {
         // SecurityContext에서 현재 인증된 사용자 정보 가져오기
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findOneWithAuthoritiesByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Could not find user with email"));
+                .orElseThrow(() -> new RuntimeException("Could not find user with email: " + username));
         Pageable pageable = PageRequest.of(page, 6, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Note> notes = noteRepository.findByUser(user, pageable);
 
