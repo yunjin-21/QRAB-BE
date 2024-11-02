@@ -26,7 +26,7 @@ public class Note extends BaseTimeEntity {
     @Column(columnDefinition = "longtext")
     private String url; //노트 url
     private String file;//파일 경로 - pdf, 사진
-    private boolean restrictedAccess; //기본값 false : 공개
+    private int restrictedAccess = 0; //기본값 0 -> 공개
 
     private int quizGenerationCount = 0; // 퀴즈 생성 횟수 (기본값 0)
 
@@ -37,7 +37,7 @@ public class Note extends BaseTimeEntity {
     private Category category;
 
     @Builder
-    public Note(String title, String content, String chatgptContent, String url, String file, boolean restrictedAccess, User user, Category category, int quizGenerationCount){
+    public Note(String title, String content, String chatgptContent, String url, String file, int restrictedAccess, User user, Category category, int quizGenerationCount){
         this.title = title;
         this.content = content;
         this.chatgptContent = chatgptContent;

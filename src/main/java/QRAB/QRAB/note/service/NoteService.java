@@ -3,10 +3,7 @@ package QRAB.QRAB.note.service;
 import QRAB.QRAB.category.domain.Category;
 import QRAB.QRAB.category.repository.CategoryRepository;
 import QRAB.QRAB.note.domain.Note;
-import QRAB.QRAB.note.dto.NoteResponseDTO;
-import QRAB.QRAB.note.dto.QuizLabNoteResponseDTO;
-import QRAB.QRAB.note.dto.RecentNoteDTO;
-import QRAB.QRAB.note.dto.SummaryResponseDTO;
+import QRAB.QRAB.note.dto.*;
 import QRAB.QRAB.note.repository.NoteRepository;
 import QRAB.QRAB.user.domain.User;
 import QRAB.QRAB.user.repository.UserRepository;
@@ -15,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +34,19 @@ public class NoteService {
                 .orElseThrow(() -> new RuntimeException("Could not find noteId"));
 
         return SummaryResponseDTO.fromEntity(note);
+    }
+
+    @Transactional(readOnly = false)
+    public ResponseEntity<?> viewNote(Long noteId, ViewRequestDTO viewRequestDTO){
+        Note note = noteRepository.findById(noteId)
+                .orElseThrow(() -> new RuntimeException("Could not find noteId"));
+        if(note.getRestrictedAccess() == 0){ //(0인 경우)공개면
+            note.setRestrictedAccess(1); //1로 변경
+        }else{ //비공개면
+            note.setRestrictedAccess(0); //공개로 변경
+        }
+        Note savedNote = noteRepository.save(note); // note 객체를 db에 저장
+        return ResponseEntity.ok(viewRequestDTO);
     }
 
     @Transactional(readOnly = true)
@@ -110,5 +121,7 @@ public class NoteService {
 
         return noteRepository.countByUser(user);
     }
+
+
 
 }
