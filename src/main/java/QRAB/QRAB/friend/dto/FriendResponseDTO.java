@@ -13,16 +13,15 @@ import java.util.stream.Collectors;
 @Getter
 @AllArgsConstructor
 public class FriendResponseDTO {
-    private Long userId;
+    private Long friendshipId;
     private String nickName;
-    private List<Long> noteIds; //친구가 작성한 노트 ID 리스트
+    //프로필 사진 추가하기
 
-    public static FriendResponseDTO fromEntity(User friend, List<Note> notes){
-        List<Long> noteIds = notes.stream()
-                .map(Note::getId)
-                .collect(Collectors.toList());
+    //private List<Long> noteIds; //친구가 작성한 노트 ID 리스트
 
-        return new FriendResponseDTO(friend.getUserId(), friend.getNickname(), noteIds);
+    public static FriendResponseDTO fromEntity(Friendship friendship){
+        User friend = friendship.getFriend(); //친구 객체 가져오기
+        return new FriendResponseDTO(friendship.getFriendshipId(), friend.getNickname());
     }
 
 }

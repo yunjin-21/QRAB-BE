@@ -1,13 +1,17 @@
 package QRAB.QRAB.friend.service;
 
+import QRAB.QRAB.category.domain.Category;
 import QRAB.QRAB.category.dto.CategoryChildResponseDTO;
 import QRAB.QRAB.category.dto.CategoryParentResponseDTO;
+import QRAB.QRAB.category.repository.CategoryRepository;
 import QRAB.QRAB.category.service.CategoryService;
 import QRAB.QRAB.friend.domain.Friendship;
+import QRAB.QRAB.friend.dto.AddFriendNoteRequestDTO;
 import QRAB.QRAB.friend.dto.FriendAddRequestDTO;
 import QRAB.QRAB.friend.dto.FriendResponseDTO;
 import QRAB.QRAB.friend.repository.FriendshipRepository;
 import QRAB.QRAB.note.domain.Note;
+import QRAB.QRAB.note.dto.FriendNoteResponseDTO;
 import QRAB.QRAB.note.dto.NoteResponseDTO;
 import QRAB.QRAB.note.repository.NoteRepository;
 import QRAB.QRAB.note.service.NoteService;
@@ -34,6 +38,7 @@ public class FriendService {
     private final UserRepository userRepository;
     private final FriendshipRepository friendRepository;
     private final ProfileRepository profileRepository;
+    private final CategoryRepository categoryRepository;
     private final CategoryService categoryService;
     private final NoteService noteService;
 
@@ -51,9 +56,9 @@ public class FriendService {
         if(friendRepository.existsByUserAndFriend(user, friend)){
             throw new RuntimeException("Already friends");
         }
-        Friendship friendship = friendAddRequestDTO.toEntity(user);
+        Friendship friendship = friendAddRequestDTO.toEntity(user);//user 정보를 활용
         //friendship.setUser(user); //친구 추가시킨 사용자
-        friendship.setFriend(friend); //추가된 친구
+        friendship.setFriend(friend); //추가된 친구의 아이디가 추가
 
         Friendship savedFriendship = friendRepository.save(friendship);
         return ResponseEntity.ok(friendAddRequestDTO);
@@ -90,20 +95,13 @@ public class FriendService {
         result.put("majorIds", userProfileResponse.getMajorNames());
 
 
-        //친구 목록을 반환 아이디 + 닉네임 + 노트 아이디
-        List<Friendship> friendships = user.getFriends();
+        //친구 목록을 반환
+        // firendshipId 아이디 + 닉네임 + 프로필 사진 추가하기
+        List<Friendship> friendships = friendRepository.findByUser(user);
         List<FriendResponseDTO> friendResponseDTOs = friendships.stream()
-                .map(friendship -> {
-                    User friend = friendship.getFriend(); // 친구 객체 찾기
-                    if (friend == null) {
-                        // 친구가 null인 경우 기본값 또는 예외 처리
-                        return null;
-                    }
-                    List<Note> notes = noteRepository.findByUser(friend); // 친구가 만든 노트 리스트 찾기
-                    return FriendResponseDTO.fromEntity(friend, notes);
-                })
-                .filter(Objects::nonNull) // null 필터링
-                .collect(Collectors.toList());
+                        .map(FriendResponseDTO::fromEntity)
+                        .collect(Collectors.toList());
+
         result.put("friendships", friendResponseDTOs);
 
         return ResponseEntity.ok(result);
@@ -120,21 +118,72 @@ public class FriendService {
         if(friendship.getUser().equals(user)){
             friendEmail = friendship.getFriend().getUsername();
         }
-        // 사용자가 생성한 상위 카테고리 조회
-        List<CategoryParentResponseDTO> parentCategories = categoryService.getUserParentCategories(friendEmail);
+        // 친구가 생성한 상위 카테고리 조회 - 단 친구의 노트가 0인 경우의 카테고리만 필터링해서 제공
+        List<CategoryParentResponseDTO> parentCategories = categoryService.getFriendParentCategories(friendEmail);
 
         // 하위 카테고리 조회
-        List<CategoryChildResponseDTO> childCategories = categoryService.getUserChildCategories(friendEmail);
+        List<CategoryChildResponseDTO> childCategories = categoryService.getFriendChildCategories(friendEmail);
 
         // 노트의 제목, 요약본 (10자), 카테고리 조회
-        List<NoteResponseDTO> sixNotesInfo = noteService.getUserRecentNotes(friendEmail, page);
+        List<FriendNoteResponseDTO> sixFriendsNotesInfo = noteService.getFriendNotes(friendEmail, page);
 
         Map<String, Object> result = new HashMap<>();
         result.put("parentCategories", parentCategories);
         result.put("childCategories", childCategories);
-        result.put("sixNotesInfo", sixNotesInfo);
+        result.put("sixFriendsNotesInfo", sixFriendsNotesInfo);
 
         return ResponseEntity.ok(result);
+    }
+
+    @Transactional(readOnly = false)
+    public ResponseEntity<?> getFriendNotePageByCategory(String userEmail, Long friendshipId, Long categoryId, int page){
+        User user = userRepository.findOneWithAuthoritiesByUsername(userEmail)//user 객체
+                .orElseThrow(() -> new NotFoundMemberException("Could not find user with email: " + userEmail));
+        Friendship friendship = friendRepository.findById(friendshipId)
+                .orElseThrow(() -> new RuntimeException("Could not find friendship ID"));
+
+        String friendEmail = "";
+        if(friendship.getUser().equals(user)){
+            friendEmail = friendship.getFriend().getUsername();
+        }
+        // 친구가 생성한 상위 카테고리 조회 - 단 친구의 노트가 public 값이 0인 경우의 카테고리만 필터링해서 제공
+        List<CategoryParentResponseDTO> parentCategories = categoryService.getFriendParentCategories(friendEmail);
+
+        // 하위 카테고리 조회
+        List<CategoryChildResponseDTO> childCategories = categoryService.getFriendChildCategories(friendEmail);
+
+        // 노트의 제목, 카테고리 조회
+        List<FriendNoteResponseDTO> sixFriendsNotesInfo = noteService.getFriendNotesByCategory(friendEmail,categoryId,page);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("parentCategories", parentCategories);
+        result.put("childCategories", childCategories);
+        result.put("sixFriendsNotesInfo", sixFriendsNotesInfo);
+
+        return ResponseEntity.ok(result);
+    }
+    @Transactional(readOnly = false)
+    public ResponseEntity<?> saveFriendNote(Long noteId, AddFriendNoteRequestDTO addFriendNoteRequestDTO){
+        System.out.println("Received noteId: " + noteId);
+        System.out.println("Received categoryId: " + addFriendNoteRequestDTO.getCategoryId());
+        Note friendNote = noteRepository.findById(noteId)
+                .orElseThrow(() -> new RuntimeException("Could not find noteId"));
+        User user = userRepository.findOneWithAuthoritiesByUsername(addFriendNoteRequestDTO.getEmail())
+                .orElseThrow(() -> new RuntimeException(("Could not find user with email")));
+        Category category = categoryRepository.findById(addFriendNoteRequestDTO.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("Could not find category"));
+
+        Note userNote = addFriendNoteRequestDTO.toEntity(user, category);
+        userNote.setRestrictedAccess(0);
+        userNote.setUrl(friendNote.getUrl());
+        userNote.setFile(friendNote.getFile());
+        userNote.setContent(friendNote.getContent());
+        userNote.setTitle(friendNote.getTitle());
+        userNote.setChatgptContent(friendNote.getChatgptContent());
+
+        // 새로운 노트를 데이터베이스에 저장 후 DTO로 변환하여 반환
+        noteRepository.save(userNote);
+        return ResponseEntity.ok(addFriendNoteRequestDTO);
     }
 
 }

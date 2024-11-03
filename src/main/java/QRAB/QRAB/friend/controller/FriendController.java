@@ -1,5 +1,6 @@
 package QRAB.QRAB.friend.controller;
 
+import QRAB.QRAB.friend.dto.AddFriendNoteRequestDTO;
 import QRAB.QRAB.friend.dto.FriendAddRequestDTO;
 import QRAB.QRAB.friend.service.FriendService;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,20 @@ public class FriendController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userEmail = authentication.getName();
         return friendService.getNotesByFriend(userEmail, friendshipId, page);
+    }
+
+    @PostMapping("/notes/{noteId}")
+    public ResponseEntity<?> saveFriendNote(@PathVariable("noteId") Long noteId, AddFriendNoteRequestDTO addFriendNoteRequestDTO){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        addFriendNoteRequestDTO.setEmail(authentication.getName());
+        return friendService.saveFriendNote(noteId, addFriendNoteRequestDTO);
+    }
+
+    @GetMapping("/{friendshipId}/notes/{categoryId}")
+    public ResponseEntity<?> getFriendNotePageByCategory(@PathVariable("friendshipId")Long friendshipId, @PathVariable("categoryId") Long categoryId, @RequestParam(name = "page", defaultValue = "0") int page){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userEmail = authentication.getName();
+        return friendService.getFriendNotePageByCategory(userEmail, friendshipId, categoryId, page);
     }
 
 

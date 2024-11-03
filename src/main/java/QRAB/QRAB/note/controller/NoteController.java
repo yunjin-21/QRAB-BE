@@ -3,10 +3,7 @@ package QRAB.QRAB.note.controller;
 import QRAB.QRAB.category.dto.CategoryChildResponseDTO;
 import QRAB.QRAB.category.dto.CategoryParentResponseDTO;
 import QRAB.QRAB.category.service.CategoryService;
-import QRAB.QRAB.note.dto.BlogRequestDTO;
-import QRAB.QRAB.note.dto.FileRequestDTO;
-import QRAB.QRAB.note.dto.NoteResponseDTO;
-import QRAB.QRAB.note.dto.RecentNoteDTO;
+import QRAB.QRAB.note.dto.*;
 import QRAB.QRAB.note.service.NoteService;
 import QRAB.QRAB.note.service.UrlCrawlerService;
 import QRAB.QRAB.note.service.FileCrawlerService;
@@ -65,6 +62,13 @@ public class NoteController {
     @GetMapping("/{noteId}/summary")
     public ResponseEntity<?> getNoteSummary(@PathVariable("noteId") Long noteId){
         return ResponseEntity.ok(noteService.getNoteSummary(noteId));
+    }
+
+    @PostMapping("/{noteId}/view")
+    public ResponseEntity<?> viewNote(@PathVariable("noteId") Long noteId, ViewRequestDTO viewRequestDTO){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        viewRequestDTO.setEmail(authentication.getName());
+        return noteService.viewNote(noteId, viewRequestDTO);
     }
 
     @GetMapping
