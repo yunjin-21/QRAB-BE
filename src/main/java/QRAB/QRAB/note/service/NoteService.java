@@ -63,19 +63,40 @@ public class NoteService {
     }
 
     @Transactional(readOnly = true)
-    public List<NoteResponseDTO> getFriendNotesByUser(String friendEmail, int page){
+    public List<FriendNoteResponseDTO> getFriendNotes(String friendEmail, int page){
         User user = userRepository.findOneWithAuthoritiesByUsername(friendEmail)
                 .orElseThrow(()-> new RuntimeException("Could not find user with email"));
         Pageable pageable = PageRequest.of(page, 6, Sort.by(Sort.Direction.DESC, "createdAt")); //최신순으로 6개씩 조회
         Page<Note> notes = noteRepository.findByUser(user, pageable);
 
-        List<NoteResponseDTO> noteResponseDTOs = notes.getContent().stream()
+        List<FriendNoteResponseDTO> noteResponseDTOs = notes.getContent().stream()
                 .filter(note -> note.getRestrictedAccess() == 0) //접근제한자 public 인 경우만 조회되도록 필터링
-                .map(NoteResponseDTO::fromEntity)
+                .map(FriendNoteResponseDTO::fromEntity)
                 .collect(Collectors.toList());
         return noteResponseDTOs;
     }
 
+    @Transactional(readOnly = true)
+    public List<FriendNoteResponseDTO> getFriendNotesByCategory(String friendEmail, Long categoryId, int page){
+        User friend  = userRepository.findOneWithAuthoritiesByUsername(friendEmail)
+                .orElseThrow(()-> new RuntimeException("Could not find user with email"));
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new RuntimeException("Could not find category with ID: " + categoryId));
+
+        List<Category> categories = new ArrayList<>();
+        if(category.getParentCategory() == null){//부모일 경우
+            categories.add(category);//부모
+            categories.addAll(categoryRepository.findByParentCategory(category));//자식들
+        }else{
+            categories.add(category);
+        }
+        Pageable pageable = PageRequest.of(page, 6, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Note> notes = noteRepository.findByCategoriesAndUser(categories, friend, pageable);
+        List<FriendNoteResponseDTO> noteResponseDTOS = notes.getContent().stream()
+                .map(FriendNoteResponseDTO::fromEntity)
+                .collect(Collectors.toList());
+        return noteResponseDTOS;
+    }
     @Transactional(readOnly = true)
     public List<NoteResponseDTO> getNotesByCategory(String username, Long categoryId, int page) {
         User user = userRepository.findOneWithAuthoritiesByUsername(username)
@@ -85,9 +106,9 @@ public class NoteService {
                 .orElseThrow(() -> new RuntimeException("Could not find category with ID: " + categoryId));
 
         List<Category> categories = new ArrayList<>();
-        if(category.getParentCategory() == null){
-            categories.add(category);
-            categories.addAll(categoryRepository.findByParentCategory(category));
+        if(category.getParentCategory() == null){//부모일 경우
+            categories.add(category);//부모
+            categories.addAll(categoryRepository.findByParentCategory(category));//자식들
         }else{
             categories.add(category);
         }
