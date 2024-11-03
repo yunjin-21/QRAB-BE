@@ -49,6 +49,9 @@ public class UserService {
         if (userRepository.findOneWithAuthoritiesByUsername(userDto.getUsername()).orElse(null) != null) {
             throw new DuplicateMemberException("이미 사용 중인 이메일입니다.");
         }
+        if(!userDto.getPassword().equals(userDto.getPasswordConfirm())){
+            throw new IllegalArgumentException("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
+        }
 
         List<Major> majorList = majorRepository.findAllByNameIn(new ArrayList<>(userDto.getMajorNames()));
         //List<Major> majorList = majorRepository.findAllById(userDto.getMajorIds());
@@ -66,6 +69,7 @@ public class UserService {
                 .authorities(Collections.singleton(authority))
                 .activated(true) //활성화된 상태로 설정
                 .majors(majorSet)
+                .notification(0)//비공개로 설정
                 .build();
 
         // Profile 엔티티 생성 (User와 연관)
@@ -73,6 +77,7 @@ public class UserService {
                 .user(user) // User와 연결
                 .nickname(userDto.getNickname()) // User와 동일한 값 설정
                 .email(userDto.getUsername())    // User의 이메일을 Profile에도 사용
+                .password(userDto.getPassword())
                 .phoneNumber(userDto.getPhoneNumber()) // User의 전화번호를 Profile에도 사용
                 .build();
         // User와 Profile을 함께 저장

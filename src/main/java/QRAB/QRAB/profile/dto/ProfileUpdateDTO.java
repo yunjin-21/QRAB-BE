@@ -21,10 +21,9 @@ import org.springframework.web.multipart.MultipartFile;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY) //모든 필드를 직렬화하고 역직화함
 public class ProfileUpdateDTO {
-    @NotNull
-    @Email
-    @Size(max = 50)
+
     private String email; //이메일 수정 가능? no
+
     @NotNull
     @Size(min = 2, max = 10)
     @Pattern(

@@ -40,6 +40,9 @@ public class User {
     @Column(name = "activated")
     private boolean activated;
 
+    @Column(name = "notification")
+    private int notification; //알림 설정 기본값 0 -> 비공개
+
     @ManyToMany
     @JoinTable(
             name = "user_authority",// 중간 테이블 user_authority 이름

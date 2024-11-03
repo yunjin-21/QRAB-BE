@@ -1,6 +1,8 @@
 package QRAB.QRAB.profile.controller;
 
 import QRAB.QRAB.friend.service.FriendService;
+import QRAB.QRAB.profile.dto.MajorUpdateDTO;
+import QRAB.QRAB.profile.dto.NotificationRequestDTO;
 import QRAB.QRAB.profile.dto.ProfileUpdateDTO;
 import QRAB.QRAB.profile.service.ProfileService;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +26,7 @@ public class ProfileController {
     }
 
     //프로필 편집
-    @PutMapping("/update")
+    @PatchMapping("/updateProfile")
     public ResponseEntity<?> updateProfile(ProfileUpdateDTO profileUpdateDTO) throws IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         profileUpdateDTO.setEmail(authentication.getName());
@@ -32,8 +34,19 @@ public class ProfileController {
 
     }
 
-    /*@GetMapping
-    public ResponseEntity<?> getProfile(){
-        return profileService.getProfileByUser();
-    }*/
+    @PutMapping("/updateMajor")
+    public ResponseEntity<?> updateMajor(@RequestBody MajorUpdateDTO majorUpdateDTO) throws IOException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        majorUpdateDTO.setEmail(authentication.getName());
+        return profileService.updateMajor(majorUpdateDTO);
+
+    }
+
+    @PostMapping("/notifications")
+    public ResponseEntity<?> viewNotifications(NotificationRequestDTO notificationRequestDTO){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        notificationRequestDTO.setEmail(authentication.getName());
+        return profileService.viewNotifications(notificationRequestDTO);
+    }
+
 }
