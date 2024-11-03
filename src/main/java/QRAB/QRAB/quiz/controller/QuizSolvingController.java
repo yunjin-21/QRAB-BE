@@ -1,5 +1,7 @@
 package QRAB.QRAB.quiz.controller;
 
+import QRAB.QRAB.quiz.dto.QuizGradingRequestDTO;
+import QRAB.QRAB.quiz.dto.QuizGradingResponseDTO;
 import QRAB.QRAB.quiz.dto.QuizSolvingResponseDTO;
 import QRAB.QRAB.quiz.dto.UnsolvedQuizSetResponseDTO;
 import QRAB.QRAB.quiz.service.QuizService;
@@ -35,5 +37,14 @@ public class QuizSolvingController {
     public ResponseEntity<QuizSolvingResponseDTO> getQuizSetDetails(@PathVariable Long quizSetId) {
         QuizSolvingResponseDTO response = quizSolvingService.getQuizSetDetails(quizSetId);
         return ResponseEntity.ok(response);
+    }
+
+    // 퀴즈 채점
+    @PostMapping("/{quizSetId}/quizzes/grade")
+    public ResponseEntity<QuizGradingResponseDTO> gradeQuizAnswers(
+            @PathVariable Long quizSetId,
+            @RequestBody QuizGradingRequestDTO request) {
+        QuizGradingResponseDTO result = quizSolvingService.evaluateQuizSet(quizSetId, request);
+        return ResponseEntity.ok(result);
     }
 }
