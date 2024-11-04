@@ -2,6 +2,7 @@ package QRAB.QRAB.quiz.controller;
 
 import QRAB.QRAB.note.dto.QuizLabNoteResponseDTO;
 import QRAB.QRAB.note.service.NoteService;
+import QRAB.QRAB.quiz.dto.QuizGradingResponseDTO;
 import QRAB.QRAB.quiz.dto.QuizResultDTO;
 import QRAB.QRAB.quiz.dto.QuizSetDTO;
 import QRAB.QRAB.quiz.dto.QuizGenerationRequestDTO;
@@ -33,11 +34,11 @@ public class QuizController {
         return ResponseEntity.ok(quizSetDTO);
     }
 
-    // 특정 퀴즈 세트의 퀴즈 조회 엔드포인트
-    @GetMapping("/{quizSetId}/quizzes")
-    public ResponseEntity<List<Quiz>> getQuizzesByQuizSetId(@PathVariable Long quizSetId){
-        List<Quiz> quizzes = quizService.getQuizzesByQuizSetId(quizSetId);
-        return ResponseEntity.ok(quizzes);
+    // 특정 퀴즈 세트의 채점 결과 조회 엔드포인트
+    @GetMapping("/quizzes/{quizSetId}")
+    public ResponseEntity<QuizGradingResponseDTO> getQuizSetResult(@PathVariable Long quizSetId) {
+        QuizGradingResponseDTO result = quizService.getQuizSetResult(quizSetId);
+        return ResponseEntity.ok(result);
     }
 
     // 저장된 노트 리스트 조회 엔드포인트 (퀴즈 연구소 화면용)

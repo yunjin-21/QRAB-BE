@@ -1,13 +1,12 @@
 package QRAB.QRAB.quiz.service;
 
+import QRAB.QRAB.quiz.domain.QuizAnswer;
 import QRAB.QRAB.quiz.domain.QuizResult;
-import QRAB.QRAB.quiz.dto.QuizGenerationRequestDTO;
-import QRAB.QRAB.quiz.dto.QuizResultDTO;
-import QRAB.QRAB.quiz.dto.QuizSetDTO;
+import QRAB.QRAB.quiz.dto.*;
 import QRAB.QRAB.quiz.domain.Quiz;
 import QRAB.QRAB.quiz.domain.QuizSet;
 import QRAB.QRAB.chatgpt.service.ChatgptService;
-import QRAB.QRAB.quiz.dto.UnsolvedQuizSetResponseDTO;
+import QRAB.QRAB.quiz.repository.QuizAnswerRepository;
 import QRAB.QRAB.quiz.repository.QuizRepository;
 import QRAB.QRAB.quiz.repository.QuizResultRepository;
 import QRAB.QRAB.quiz.repository.QuizSetRepository;
@@ -25,6 +24,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,16 +37,19 @@ public class QuizService {
     private final ChatgptService chatgptService;
     private final NoteRepository noteRepository;
     private final QuizResultRepository quizResultRepository;
+    private final QuizAnswerRepository quizAnswerRepository;
 
     @Autowired
     public QuizService(UserRepository userRepository, QuizRepository quizRepository, QuizSetRepository quizSetRepository,
-                       ChatgptService chatgptService, NoteRepository noteRepository, QuizResultRepository quizResultRepository) {
+                       ChatgptService chatgptService, NoteRepository noteRepository, QuizResultRepository quizResultRepository,
+                       QuizAnswerRepository quizAnswerRepository) {
         this.userRepository = userRepository;
         this.quizRepository = quizRepository;
         this.quizSetRepository = quizSetRepository;
         this.chatgptService = chatgptService;
         this.noteRepository = noteRepository;
         this.quizResultRepository = quizResultRepository;
+        this.quizAnswerRepository = quizAnswerRepository;
     }
 
     public QuizSetDTO createQuizSet(QuizGenerationRequestDTO requestDTO) {
@@ -144,6 +147,41 @@ public class QuizService {
         Page<QuizResult> quizResults = quizResultRepository.findAllSolvedQuizSets(pageable);
 
         return quizResults.map(this::convertToDto);
+    }
+
+    public QuizGradingResponseDTO getQuizSetResult(Long quizSetId) {
+        // QuizResult를 quizSetId를 기준으로 조회
+        QuizResult quizResult = quizResultRepository.findByQuizSetQuizSetId(quizSetId)
+                .orElseThrow(() -> new RuntimeException("Quiz result not found"));
+
+        // QuizAnswer 목록을 가져와 QuizResultDetailDTO 리스트 생성
+        List<QuizAnswer> quizAnswers = quizAnswerRepository.findByQuizResult(quizResult);
+        List<QuizGradingResponseDTO.QuizResultDetailDTO> quizResultDetails = new ArrayList<>();
+
+        for (QuizAnswer answer : quizAnswers) {
+            Quiz quiz = answer.getQuiz();
+            QuizGradingResponseDTO.QuizResultDetailDTO detail = new QuizGradingResponseDTO.QuizResultDetailDTO();
+            detail.setQuizId(quiz.getQuizId());
+            detail.setDifficulty(quiz.getDifficulty());
+            detail.setQuestion(quiz.getQuestion());
+            detail.setChoices(quiz.getChoicesAsList());
+            detail.setSelectedAnswer(answer.getSelectedAnswer());
+            detail.setCorrectAnswer(quiz.getCorrectAnswer());
+            detail.setExplanation(quiz.getExplanation());
+            detail.setIsCorrect(answer.isCorrect());
+            quizResultDetails.add(detail);
+        }
+
+        // QuizGradingResponseDTO 생성
+        QuizGradingResponseDTO response = new QuizGradingResponseDTO();
+        response.setNoteTitle(quizResult.getQuizSet().getNote().getTitle());
+        response.setScore(quizResult.getScore());
+        response.setCorrectCount(quizResult.getCorrectCount());
+        response.setTotalQuestions(quizResult.getTotalQuestions());
+        response.setTakenAt(quizResult.getTakenAt());
+        response.setQuizzes(quizResultDetails);
+
+        return response;
     }
 
     //퀴즈 풀기 페이지 조회(unsolved quizset 조회)
