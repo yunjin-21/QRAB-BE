@@ -37,6 +37,15 @@ public class UserController {
         }
     }
 
+    @GetMapping("/health")
+    public ResponseEntity<Void> checkHealthStatus() {
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+    @GetMapping
+    public ResponseEntity<Void> checkHealthStatus8080() {
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     @PostMapping("/signup")
     public ResponseEntity<?> signup(
             @Valid @RequestBody UserDTO userDto

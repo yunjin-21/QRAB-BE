@@ -13,7 +13,9 @@ public class CorsConfig {
     public CorsFilter corsFilter() { //추가하기
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOrigin("http://localhost:3000"); // 허용할 Origin 지정
+        config.addAllowedOrigin("http://localhost:3000"); // 허용할 Origin 지정 (로컬 개발용)
+        config.addAllowedOrigin("http://qrab.site");
+        config.addAllowedOrigin("https://qrab.site");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.setMaxAge(6000L);
