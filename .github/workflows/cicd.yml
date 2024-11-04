@@ -37,7 +37,8 @@ jobs:
           utcOffset: "+09:00"
 
       - name: Set artifact
-        run: echo "artifact=$(ls ./build/libs | tr -d '\n')" >> $GITHUB_ENV
+        run: echo "artifact=$(ls ./build/libs | grep 'QRAB-.*.jar' | head -n 1)" >> $GITHUB_ENV
+
 
       - name: Beanstalk Deploy
         uses: einaregilsson/beanstalk-deploy@v20
