@@ -90,6 +90,7 @@ public class QuizSolvingService {
         // 총 질문 수와 점수 계산
         int totalQuestions = request.getAnswers().size();
         int score = (int) ((double) correctCount / totalQuestions * 100);
+        float accuracyRate = (float) correctCount / totalQuestions;
 
         // QuizResult 엔티티 저장
         QuizResult quizResult = new QuizResult();
@@ -101,8 +102,9 @@ public class QuizSolvingService {
         quizResult.setTakenAt(LocalDateTime.now());
         quizResultRepository.save(quizResult);
 
-        // QuizSet 상태 업데이트
+        // QuizSet 업데이트
         quizSet.setStatus("solved");
+        quizSet.setAccuracyRate(accuracyRate);
         quizSetRepository.save(quizSet);
 
         // 각 QuizAnswer에 quizResult 설정 후 저장
