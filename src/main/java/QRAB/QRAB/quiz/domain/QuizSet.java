@@ -85,7 +85,8 @@ public class QuizSet {
     }
 
     public void setAccuracyRate(float accuracyRate) {
-        this.accuracyRate = accuracyRate;
+        // 소수점 넷째 자리까지 반올림
+        this.accuracyRate = Math.round(accuracyRate * 10000) / 10000.0f;
     }
 
     public List<Quiz> getQuizzes() {
