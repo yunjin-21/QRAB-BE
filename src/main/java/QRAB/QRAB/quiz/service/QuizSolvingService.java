@@ -104,7 +104,7 @@ public class QuizSolvingService {
         // QuizSet 상태 업데이트
         quizSet.setStatus("solved");
         quizSetRepository.save(quizSet);
-        
+
         // 각 QuizAnswer에 quizResult 설정 후 저장
         for (QuizGradingRequestDTO.AnswerDTO answer : request.getAnswers()) {
             Quiz quiz = quizRepository.findById(answer.getQuizId())
