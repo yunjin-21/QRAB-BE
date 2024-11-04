@@ -49,7 +49,7 @@ public class CategoryController {
         request.validate();
         try{
             categoryService.deleteCategory(request.getCategoryIds(), authentication.getName());
-            return ResponseEntity.ok("Category is deleted successfully!");
+            return ResponseEntity.ok("Category is deleted successfully!!");
         }catch (Exception e) {
             throw new RuntimeException(e);
         }
