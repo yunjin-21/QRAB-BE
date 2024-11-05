@@ -2,9 +2,12 @@ package QRAB.QRAB.note.domain;
 
 import QRAB.QRAB.BaseTimeEntity;
 import QRAB.QRAB.category.domain.Category;
+import QRAB.QRAB.quiz.domain.QuizSet;
 import QRAB.QRAB.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.List;
 
 @Entity
 @Getter
@@ -35,6 +38,9 @@ public class Note extends BaseTimeEntity {
 
     @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "category_id")
     private Category category;
+
+    @OneToMany(mappedBy = "note", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<QuizSet> quizSets;
 
     @Builder
     public Note(String title, String content, String chatgptContent, String url, String file, int restrictedAccess, User user, Category category, int quizGenerationCount){

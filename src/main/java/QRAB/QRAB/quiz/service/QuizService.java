@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import jakarta.persistence.EntityNotFoundException;
+
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -206,6 +208,17 @@ public class QuizService {
                 quizSet.getNote().getCategory().getParentCategory() != null
                         ? quizSet.getNote().getCategory().getParentCategory().getName() : null
         ));
+    }
+
+    public Page<QuizResultDTO> getSolvedQuizSetsByNoteId(Long noteId, int page) {
+        Pageable pageable = PageRequest.of(page, 6); // 페이지 당 6개로 설정
+        return quizSetRepository.findByNoteIdAndStatus(noteId, "solved", pageable)
+                .map(quizSet -> {
+                    // quizSetId로 QuizResult 조회 (Optional 처리 포함)
+                    QuizResult quizResult = quizResultRepository.findByQuizSetQuizSetId(quizSet.getQuizSetId())
+                            .orElseThrow(() -> new EntityNotFoundException("QuizResult not found for quizSetId: " + quizSet.getQuizSetId()));
+                    return new QuizResultDTO(quizSet, quizResult);
+                });
     }
 
     private QuizResultDTO convertToDto(QuizResult quizResult) {

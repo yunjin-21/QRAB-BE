@@ -1,5 +1,6 @@
 package QRAB.QRAB.quiz.controller;
 
+import QRAB.QRAB.note.controller.NoteController;
 import QRAB.QRAB.note.dto.QuizLabNoteResponseDTO;
 import QRAB.QRAB.note.service.NoteService;
 import QRAB.QRAB.quiz.dto.QuizGradingResponseDTO;
@@ -20,11 +21,13 @@ import java.util.List;
 public class QuizController {
     private final QuizService quizService;
     private final NoteService noteService;
+    private final NoteController noteController;
 
     @Autowired
-    public QuizController(QuizService quizService, NoteService noteService){
+    public QuizController(QuizService quizService, NoteService noteService, NoteController noteController){
         this.quizService = quizService;
         this.noteService = noteService;
+        this.noteController = noteController;
     }
 
     // 퀴즈 세트 생성 엔드포인트
@@ -32,13 +35,6 @@ public class QuizController {
     public ResponseEntity<QuizSetDTO> generateQuizSet(@RequestBody QuizGenerationRequestDTO requestDTO){
         QuizSetDTO quizSetDTO = quizService.createQuizSet(requestDTO);
         return ResponseEntity.ok(quizSetDTO);
-    }
-
-    // 특정 퀴즈 세트의 채점 결과 조회 엔드포인트
-    @GetMapping("/quizzes/{quizSetId}")
-    public ResponseEntity<QuizGradingResponseDTO> getQuizSetResult(@PathVariable Long quizSetId) {
-        QuizGradingResponseDTO result = quizService.getQuizSetResult(quizSetId);
-        return ResponseEntity.ok(result);
     }
 
     // 저장된 노트 리스트 조회 엔드포인트 (퀴즈 연구소 화면용)
@@ -53,12 +49,33 @@ public class QuizController {
         return ResponseEntity.ok(storedNotes);
     }
 
+    @GetMapping("/quizzes/{categoryId}")
+    public ResponseEntity<?> getNotePageByCategoryInQuizLab(@PathVariable("categoryId") Long categoryId,
+                                                            @RequestParam(name = "page", defaultValue = "0") int page) {
+        return noteController.getNotePageByCategory(categoryId, page);
+    }
+
+    @GetMapping("/quizzes/{noteId}/solved")
+    public ResponseEntity<Page<QuizResultDTO>> getSolvedQuizSetsByNoteId(
+            @PathVariable("noteId") Long noteId,
+            @RequestParam(name = "page", defaultValue = "0") int page) {
+        Page<QuizResultDTO> solvedQuizSets = quizService.getSolvedQuizSetsByNoteId(noteId, page);
+        return ResponseEntity.ok(solvedQuizSets);
+    }
+
     // status가 solved인 퀴즈 세트 조회 엔드포인트 (퀴즈 저장소 화면용)
-    @GetMapping("/quizzes")
+    @GetMapping("/quizzes/solved")
     public ResponseEntity<Page<QuizResultDTO>> getSolvedQuizSets(
             @RequestParam(name = "page", defaultValue = "0") int page) {
         Page<QuizResultDTO> solvedQuizSets = quizService.getSolvedQuizSets(page);
         return ResponseEntity.ok(solvedQuizSets);
+    }
+
+    // 특정 퀴즈 세트의 채점 결과 조회 엔드포인트
+    @GetMapping("/quizzes/solved/{quizSetId}")
+    public ResponseEntity<QuizGradingResponseDTO> getQuizSetResult(@PathVariable Long quizSetId) {
+        QuizGradingResponseDTO result = quizService.getQuizSetResult(quizSetId);
+        return ResponseEntity.ok(result);
     }
 
 
