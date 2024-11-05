@@ -46,12 +46,14 @@ public class QuizController {
         return ResponseEntity.ok(storedNotes);
     }
 
+    // 카테고리 별 노트 조회 엔드포인트 추가
     @GetMapping("/quizzes/{categoryId}")
     public ResponseEntity<?> getNotePageByCategoryInQuizLab(@PathVariable("categoryId") Long categoryId,
                                                             @RequestParam(name = "page", defaultValue = "0") int page) {
         return noteController.getNotePageByCategory(categoryId, page);
     }
 
+    // 특정 noteId를 가지는 solved 퀴즈 세트 조회 엔드포인트
     @GetMapping("/quizzes/{noteId}/solved")
     public ResponseEntity<Page<QuizResultDTO>> getSolvedQuizSetsByNoteId(
             @PathVariable("noteId") Long noteId,
@@ -60,7 +62,7 @@ public class QuizController {
         return ResponseEntity.ok(solvedQuizSets);
     }
 
-    // status가 solved인 퀴즈 세트 조회 엔드포인트 (퀴즈 저장소 화면용)
+    // solved 퀴즈 세트 조회 엔드포인트 (퀴즈 저장소 화면용)
     @GetMapping("/quizzes/solved")
     public ResponseEntity<Page<QuizResultDTO>> getSolvedQuizSets(
             @RequestParam(name = "page", defaultValue = "0") int page) {

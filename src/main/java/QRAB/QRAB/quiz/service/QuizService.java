@@ -246,11 +246,28 @@ public class QuizService {
         );
     }
 
+    // 특정 노트 unsolved 퀴즈 세트 조회
+    public Page<QuizSetDTO> findUnsolvedQuizSetsByNoteId(Long noteId, int page) {
+        Pageable pageable = PageRequest.of(page, 6); // 한 페이지에 6개로 설정
+        Page<QuizSet> unsolvedQuizSets = quizSetRepository.findByNoteIdAndStatus(noteId, "unsolved", pageable);
+
+        return unsolvedQuizSets.map(quizSet -> new QuizSetDTO(
+                quizSet.getQuizSetId(),
+                quizSet.getNote() != null ? quizSet.getNote().getId() : null,
+                quizSet.getUser() != null ? quizSet.getUser().getUserId() : null,
+                quizSet.getTotalQuestions(),
+                quizSet.getCreatedAt(),
+                quizSet.getStatus(),
+                quizSet.getAccuracyRate()
+        ));
+    }
+
+    // 오답 복습 퀴즈 조회
     public ReviewWrongQuizDTO getReviewWrongQuizzesByQuizSetId(Long quizSetId) {
         QuizSet quizSet = quizSetRepository.findById(quizSetId)
                 .orElseThrow(() -> new EntityNotFoundException("QuizSet not found with id: " + quizSetId));
 
-        // `quizSetId`에 속한 오답 퀴즈만 조회
+        // 'quizSetId'에 속한 오답 퀴즈만 조회
         List<Quiz> incorrectQuizzes = quizAnswerRepository.findIncorrectAnswersByQuizSetId(quizSetId).stream()
                 .map(QuizAnswer::getQuiz)
                 .distinct() // 중복 퀴즈 제거
@@ -270,6 +287,7 @@ public class QuizService {
         return new ReviewWrongQuizDTO(quizSet.getNote().getTitle(), quizDetails);
     }
 
+    // 오답 복습 퀴즈 채점
     public QuizGradingResponseDTO gradeReviewWrongQuiz(Long quizSetId, QuizGradingRequestDTO requestDTO) {
         QuizSet quizSet = quizSetRepository.findById(quizSetId)
                 .orElseThrow(() -> new EntityNotFoundException("QuizSet not found with id: " + quizSetId));
