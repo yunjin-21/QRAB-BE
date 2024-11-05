@@ -246,5 +246,28 @@ public class QuizService {
         );
     }
 
+    public ReviewWrongQuizDTO getReviewWrongQuizzesByQuizSetId(Long quizSetId) {
+        QuizSet quizSet = quizSetRepository.findById(quizSetId)
+                .orElseThrow(() -> new EntityNotFoundException("QuizSet not found with id: " + quizSetId));
+
+        // `quizSetId`에 속한 오답 퀴즈만 조회
+        List<Quiz> incorrectQuizzes = quizAnswerRepository.findIncorrectAnswersByQuizSetId(quizSetId).stream()
+                .map(QuizAnswer::getQuiz)
+                .distinct() // 중복 퀴즈 제거
+                .collect(Collectors.toList());
+
+        // ReviewWrongQuizDTO 생성
+        List<ReviewWrongQuizDTO.QuizDetail> quizDetails = incorrectQuizzes.stream()
+                .map(quiz -> new ReviewWrongQuizDTO.QuizDetail(
+                        quiz.getQuizId(),
+                        quiz.getQuizSet().getQuizSetId(),
+                        quiz.getQuestion(),
+                        quiz.getChoicesAsList(),
+                        quiz.getDifficulty()
+                ))
+                .collect(Collectors.toList());
+
+        return new ReviewWrongQuizDTO(quizSet.getNote().getTitle(), quizDetails);
+    }
 
 }
