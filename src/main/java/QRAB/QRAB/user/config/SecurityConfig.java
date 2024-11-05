@@ -65,6 +65,8 @@ public class SecurityConfig {
                 .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+                // HTTP Basic Authentication 비활성화
+                .httpBasic(httpBasicConfigurer -> httpBasicConfigurer.disable())
                 .with(new JwtSecurityConfig(tokenProvider), customizer -> {});
         return http.build();
     }
