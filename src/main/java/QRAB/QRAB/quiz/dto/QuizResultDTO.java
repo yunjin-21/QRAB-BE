@@ -8,7 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class QuizResultDTO {
-    private Long noteId;
+    private Long noteId; // noteId 추가
     private Long quizSetId;
     private String noteTitle;
     private int totalQuestions;
@@ -29,7 +29,7 @@ public class QuizResultDTO {
     }
 
     public QuizResultDTO(QuizSet quizSet, QuizResult quizResult) {
-        this.noteId = quizSet.getNote().getId();
+        this.noteId = quizSet.getNote().getId(); // noteId 추가
         this.quizSetId = quizSet.getQuizSetId();
         this.noteTitle = quizSet.getNote().getTitle();
         this.totalQuestions = quizSet.getTotalQuestions();
