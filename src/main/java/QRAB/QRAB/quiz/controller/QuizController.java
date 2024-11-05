@@ -72,7 +72,7 @@ public class QuizController {
     }
 
     // 특정 퀴즈 세트의 채점 결과 조회 엔드포인트
-    @GetMapping("/quizzes/solved/{quizSetId}")
+    @GetMapping("/quizzes/solved/{quizSetId}/result")
     public ResponseEntity<QuizGradingResponseDTO> getQuizSetResult(@PathVariable Long quizSetId) {
         QuizGradingResponseDTO result = quizService.getQuizSetResult(quizSetId);
         return ResponseEntity.ok(result);
