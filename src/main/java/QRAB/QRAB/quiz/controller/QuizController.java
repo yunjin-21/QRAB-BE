@@ -3,11 +3,7 @@ package QRAB.QRAB.quiz.controller;
 import QRAB.QRAB.note.controller.NoteController;
 import QRAB.QRAB.note.dto.QuizLabNoteResponseDTO;
 import QRAB.QRAB.note.service.NoteService;
-import QRAB.QRAB.quiz.dto.QuizGradingResponseDTO;
-import QRAB.QRAB.quiz.dto.QuizResultDTO;
-import QRAB.QRAB.quiz.dto.QuizSetDTO;
-import QRAB.QRAB.quiz.dto.QuizGenerationRequestDTO;
-import QRAB.QRAB.quiz.dto.ReviewWrongQuizDTO;
+import QRAB.QRAB.quiz.dto.*;
 import QRAB.QRAB.quiz.domain.Quiz;
 import QRAB.QRAB.quiz.service.QuizService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,10 +75,19 @@ public class QuizController {
         return ResponseEntity.ok(result);
     }
 
-    // 특정 퀴즈 세트의 틀린 문제 조회 엔드포인트
+    // 오답 복습 퀴즈(특정 퀴즈 세트의 틀린 문제) 조회 엔드포인트
     @GetMapping("/quizzes/solved/{quizSetId}/review-wrong")
     public ResponseEntity<ReviewWrongQuizDTO> getReviewWrongQuizzesByQuizSetId(@PathVariable Long quizSetId) {
         ReviewWrongQuizDTO response = quizService.getReviewWrongQuizzesByQuizSetId(quizSetId);
+        return ResponseEntity.ok(response);
+    }
+
+    // 오답 복습 퀴즈 채점 엔드포인트
+    @PostMapping("/quizzes/solved/{quizSetId}/review-wrong/grade")
+    public ResponseEntity<QuizGradingResponseDTO> gradeReviewWrongQuiz(
+            @PathVariable Long quizSetId,
+            @RequestBody QuizGradingRequestDTO requestDTO) {
+        QuizGradingResponseDTO response = quizService.gradeReviewWrongQuiz(quizSetId, requestDTO);
         return ResponseEntity.ok(response);
     }
 
