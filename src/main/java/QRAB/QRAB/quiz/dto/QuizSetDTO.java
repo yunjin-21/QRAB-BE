@@ -23,6 +23,17 @@ public class QuizSetDTO {
         this.accuracyRate = quizSet.getAccuracyRate();
     }
 
+    public QuizSetDTO(Long quizSetId, Long noteId, Long userId, int totalQuestions,
+                      LocalDateTime createdAt, String status, float accuracyRate) {
+        this.quizSetId = quizSetId;
+        this.noteId = noteId;
+        this.userId = userId;
+        this.totalQuestions = totalQuestions;
+        this.createdAt = createdAt;
+        this.status = status;
+        this.accuracyRate = accuracyRate;
+    }
+
     public Long getQuizSetId() {
         return quizSetId;
     }
