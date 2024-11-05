@@ -270,4 +270,50 @@ public class QuizService {
         return new ReviewWrongQuizDTO(quizSet.getNote().getTitle(), quizDetails);
     }
 
+    public QuizGradingResponseDTO gradeReviewWrongQuiz(Long quizSetId, QuizGradingRequestDTO requestDTO) {
+        QuizSet quizSet = quizSetRepository.findById(quizSetId)
+                .orElseThrow(() -> new EntityNotFoundException("QuizSet not found with id: " + quizSetId));
+
+        String noteTitle = quizSet.getNote().getTitle();
+        List<QuizGradingResponseDTO.QuizResultDetailDTO> quizResultDetails = new ArrayList<>();
+
+        int correctCount = 0;
+
+        for (QuizGradingRequestDTO.AnswerDTO answer : requestDTO.getAnswers()) {
+            Quiz quiz = quizRepository.findById(answer.getQuizId())
+                    .orElseThrow(() -> new EntityNotFoundException("Quiz not found with id: " + answer.getQuizId()));
+
+            boolean isCorrect = (quiz.getCorrectAnswer() == answer.getSelectedAnswer());
+            if (isCorrect) {
+                correctCount++;
+            }
+
+            // QuizResultDetailDTO 객체를 생성하고 값 설정
+            QuizGradingResponseDTO.QuizResultDetailDTO detailDTO = new QuizGradingResponseDTO.QuizResultDetailDTO();
+            detailDTO.setQuizId(quiz.getQuizId());
+            detailDTO.setDifficulty(quiz.getDifficulty());
+            detailDTO.setQuestion(quiz.getQuestion());
+            detailDTO.setChoices(quiz.getChoicesAsList());
+            detailDTO.setSelectedAnswer(answer.getSelectedAnswer());
+            detailDTO.setCorrectAnswer(quiz.getCorrectAnswer());
+            detailDTO.setExplanation(quiz.getExplanation());
+            detailDTO.setIsCorrect(isCorrect); // isCorrect 필드 설정
+
+            quizResultDetails.add(detailDTO);
+        }
+
+        int totalQuestions = requestDTO.getAnswers().size();
+        int score = (int) ((correctCount / (double) totalQuestions) * 100);
+
+        // QuizGradingResponseDTO 객체를 생성하고 값 설정
+        QuizGradingResponseDTO responseDTO = new QuizGradingResponseDTO();
+        responseDTO.setNoteTitle(noteTitle);
+        responseDTO.setScore(score);
+        responseDTO.setCorrectCount(correctCount);
+        responseDTO.setTotalQuestions(totalQuestions);
+        responseDTO.setTakenAt(LocalDateTime.now());
+        responseDTO.setQuizzes(quizResultDetails);
+
+        return responseDTO;
+    }
 }
