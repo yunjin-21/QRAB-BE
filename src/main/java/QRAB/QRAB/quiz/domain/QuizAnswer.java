@@ -20,6 +20,10 @@ public class QuizAnswer {
     @JoinColumn(name = "quiz_id", nullable = false)
     private Quiz quiz;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "quiz_set_id")
+    private QuizSet quizSet;
+
     private int selectedAnswer;
     private boolean isCorrect;
 
