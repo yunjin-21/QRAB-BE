@@ -16,6 +16,7 @@ public class CorsConfig {
         config.addAllowedOrigin("http://localhost:3000"); // 허용할 Origin 지정 (로컬 개발용)
         config.addAllowedOrigin("http://qrab.site");
         config.addAllowedOrigin("https://qrab.site");
+        config.addAllowedOrigin("https://qrab-omega.vercel.app");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.setMaxAge(6000L);
