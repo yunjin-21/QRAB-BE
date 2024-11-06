@@ -340,7 +340,7 @@ public class QuizService {
         List<QuizAnswer> recentWrongAnswers = quizAnswerRepository.findRecentWrongAnswers();
 
         return recentWrongAnswers.stream()
-                .limit(2) // 최근 틀린 퀴즈 2개만 반환
+                .limit(3) // 최근 틀린 퀴즈 3개만 반환
                 .map(answer -> new RecentWrongQuizDTO(
                         answer.getQuiz().getQuizId(),
                         answer.getQuiz().getQuestion(),
