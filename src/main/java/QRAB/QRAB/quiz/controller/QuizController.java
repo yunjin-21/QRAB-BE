@@ -93,4 +93,11 @@ public class QuizController {
         return ResponseEntity.ok(response);
     }
 
+    // 최근 틀린 퀴즈 조회 엔드포인트
+    @GetMapping("/recent-wrong")
+    public ResponseEntity<List<RecentWrongQuizDTO>> getRecentWrongQuizzes() {
+        List<RecentWrongQuizDTO> recentWrongQuizzes = quizService.getRecentWrongQuizzes();
+        return ResponseEntity.ok(recentWrongQuizzes);
+    }
+
 }

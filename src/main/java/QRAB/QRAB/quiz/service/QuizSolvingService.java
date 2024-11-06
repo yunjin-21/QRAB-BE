@@ -116,6 +116,7 @@ public class QuizSolvingService {
             QuizAnswer quizAnswer = new QuizAnswer();
             quizAnswer.setQuizResult(quizResult); // QuizResult 설정
             quizAnswer.setQuiz(quiz);
+            quizAnswer.setQuizSet(quiz.getQuizSet());
             quizAnswer.setSelectedAnswer(answer.getSelectedAnswer());
             quizAnswer.setIsCorrect(isCorrect);
             quizAnswerRepository.save(quizAnswer);
