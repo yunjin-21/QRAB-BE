@@ -120,11 +120,15 @@ public class QuizService {
                         "  \"quiz_summary\": \"퀴즈 요약\"\n" +
                         "}\n" +
                         "정답의 선택지 번호는 0, 1, 2, 3이 고루 분포되어야 합니다.\n\n" +
-                        "다음은 실제 사용자가 입력한 블로그 내용입니다. 반드시 이 블로그 내용에 관한 퀴즈를 %d개 출제하고, JSON 형식의 앞뒤에 아무 말도 덧붙이지 말고 JSON 형식으로만 반환해 주세요.:\n\n%s",
+                        "다음은 실제 사용자가 입력한 블로그 내용입니다. 반드시 이 블로그 내용에 관한 퀴즈를 %d개 출제하고, JSON 형식의 앞뒤에 아무 말도 덧붙이지 말고 JSON 형식으로만 반환해 주세요.\n\n" +
+                        "%s\n\n" +
+                        "블로그 내용이 끝났습니다. 가장 중요한 것은 **앞뒤에 아무 말도 없이** **JSON 형식**으로 **%d개의 퀴즈**를 출제하는 것입니다.",
                 requestDTO.getTotalQuestions(),
                 majorInfo,
                 requestDTO.getTotalQuestions(),
-                noteSummary
+                noteSummary,
+                requestDTO.getTotalQuestions()
+
         );
 
         // 7. GPT API 호출하여 퀴즈 생성
