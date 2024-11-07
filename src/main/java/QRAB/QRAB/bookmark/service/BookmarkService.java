@@ -1,0 +1,67 @@
+package QRAB.QRAB.bookmark.service;
+
+import QRAB.QRAB.bookmark.domain.Bookmark;
+import QRAB.QRAB.bookmark.dto.BookmarkRequestDTO;
+import QRAB.QRAB.bookmark.dto.BookmarkResponseDTO;
+import QRAB.QRAB.bookmark.repository.BookmarkRepository;
+import QRAB.QRAB.quiz.domain.Quiz;
+import QRAB.QRAB.quiz.repository.QuizRepository;
+import QRAB.QRAB.user.domain.User;
+import QRAB.QRAB.user.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+
+@Service
+public class BookmarkService {
+
+    private final BookmarkRepository bookmarkRepository;
+    private final QuizRepository quizRepository;
+    private final UserRepository userRepository;
+
+    @Autowired
+    public BookmarkService(BookmarkRepository bookmarkRepository, QuizRepository quizRepository, UserRepository userRepository) {
+        this.bookmarkRepository = bookmarkRepository;
+        this.quizRepository = quizRepository;
+        this.userRepository = userRepository;
+    }
+
+    // 북마크 생성
+    public BookmarkResponseDTO createBookmark(BookmarkRequestDTO requestDTO, String username) {
+        User user = userRepository.findOneWithAuthoritiesByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+
+        Quiz quiz = quizRepository.findById(requestDTO.getQuizId())
+                .orElseThrow(() -> new RuntimeException("Quiz not found: " + requestDTO.getQuizId()));
+
+        // 북마크 객체 생성
+        Bookmark bookmark = new Bookmark();
+        bookmark.setUser(user);
+        bookmark.setQuiz(quiz);
+        bookmark.setBookmarkedAt(LocalDateTime.now());
+
+        // 북마크 저장
+        Bookmark savedBookmark = bookmarkRepository.save(bookmark);
+
+        // 응답 DTO 생성 및 반환
+        BookmarkResponseDTO responseDTO = new BookmarkResponseDTO();
+        responseDTO.setBookmarkId(savedBookmark.getBookmarkId());
+        responseDTO.setQuizId(quiz.getQuizId());
+        responseDTO.setUserId(user.getUserId());
+        responseDTO.setBookmarkedAt(savedBookmark.getBookmarkedAt().toString());
+        return responseDTO;
+    }
+
+    // 북마크 삭제
+    public void deleteBookmark(Long bookmarkId) {
+        // 북마크 존재 여부 확인
+        boolean exists = bookmarkRepository.existsById(bookmarkId);
+        if (!exists) {
+            throw new EntityNotFoundException("Bookmark not found with ID: " + bookmarkId);
+        }
+        bookmarkRepository.deleteById(bookmarkId);
+    }
+}
