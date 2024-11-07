@@ -9,6 +9,7 @@ import QRAB.QRAB.friend.domain.Friendship;
 import QRAB.QRAB.friend.dto.AddFriendNoteRequestDTO;
 import QRAB.QRAB.friend.dto.FriendAddRequestDTO;
 import QRAB.QRAB.friend.dto.FriendResponseDTO;
+import QRAB.QRAB.friend.dto.FriendScoreDTO;
 import QRAB.QRAB.friend.repository.FriendshipRepository;
 import QRAB.QRAB.note.domain.Note;
 import QRAB.QRAB.note.dto.FriendNoteResponseDTO;
@@ -41,7 +42,7 @@ public class FriendService {
     private final CategoryRepository categoryRepository;
     private final CategoryService categoryService;
     private final NoteService noteService;
-
+    private final FriendshipRepository friendshipRepository;
     private final NoteRepository noteRepository;
     @Transactional(readOnly = false)
     public ResponseEntity<?> saveFriend(FriendAddRequestDTO friendAddRequestDTO){
@@ -186,4 +187,16 @@ public class FriendService {
         return ResponseEntity.ok(addFriendNoteRequestDTO);
     }
 
+    @Transactional(readOnly = true)
+    public List<FriendScoreDTO> getFriendScores(User user){
+
+        List<Friendship> friendships = friendshipRepository.findByUser(user);
+        String userNickname = user.getNickname();
+
+        // Friendship을 FriendScoreDTO로 변환 (userNickname 추가)
+        List<FriendScoreDTO> friendScoreDTOS = friendships.stream()
+                .map(friendship -> FriendScoreDTO.fromEntity(friendship, userNickname))  // 수정된 부분
+                .collect(Collectors.toList());
+        return friendScoreDTOS;
+    }
 }

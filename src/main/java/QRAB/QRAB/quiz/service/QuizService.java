@@ -23,6 +23,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
 
 
 import java.time.LocalDateTime;
@@ -351,5 +352,13 @@ public class QuizService {
                 ))
                 .collect(Collectors.toList());
     }
-
+    @Transactional(readOnly = true)
+    public List<UnsolvedRecentQuizSetDTO> getRecentUnsolvedQuizSets(String username){
+        User user = userRepository.findOneWithAuthoritiesByUsername(username)
+                .orElseThrow(()-> new RuntimeException("Could not find user with email"));
+        List<QuizSet> quizSets = quizSetRepository.findByUserOrderByCreatedAtDesc(user);
+        List<UnsolvedRecentQuizSetDTO> unsolvedRecentQuizSetDTOS = quizSets.stream()
+                .limit(3).map(UnsolvedRecentQuizSetDTO::fromEntity).toList();
+        return unsolvedRecentQuizSetDTOS;
+    }
 }

@@ -48,7 +48,7 @@ public class QuizSolvingController {
     // 퀴즈 채점
     @PostMapping("/{quizSetId}/quizzes/grade")
     public ResponseEntity<QuizGradingResponseDTO> gradeQuizAnswers(
-            @PathVariable Long quizSetId,
+            @PathVariable ("quizSetId")Long quizSetId,
             @RequestBody QuizGradingRequestDTO request) {
         QuizGradingResponseDTO result = quizSolvingService.evaluateQuizSet(quizSetId, request);
         return ResponseEntity.ok(result);
