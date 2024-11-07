@@ -12,6 +12,7 @@ public class RecentNoteDTO {
     private Long noteId;
     private String title;
     private String categoryName; //현재 카테로 이름을 가져옴! (부모 or 자식 일 수 도 )
+    private String parentCategoryName;
     private LocalDateTime createdAt;
     private String chatgptContent;
 
@@ -20,6 +21,7 @@ public class RecentNoteDTO {
                 note.getId(),
                 note.getTitle(),
                 note.getCategory().getName(),
+                note.getCategory().getParentCategory() != null ? note.getCategory().getParentCategory().getName() : "",
                 note.getCreatedAt(),
                 note.getChatgptContent().length() > 250 ? note.getChatgptContent().substring(0, 250) : note.getChatgptContent());
     }
