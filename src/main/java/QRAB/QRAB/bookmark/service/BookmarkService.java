@@ -5,6 +5,7 @@ import QRAB.QRAB.bookmark.dto.BookmarkRequestDTO;
 import QRAB.QRAB.bookmark.dto.BookmarkResponseDTO;
 import QRAB.QRAB.bookmark.repository.BookmarkRepository;
 import QRAB.QRAB.quiz.domain.Quiz;
+import QRAB.QRAB.quiz.repository.QuizAnswerRepository;
 import QRAB.QRAB.quiz.repository.QuizRepository;
 import QRAB.QRAB.user.domain.User;
 import QRAB.QRAB.user.repository.UserRepository;
@@ -19,13 +20,15 @@ import java.time.LocalDateTime;
 public class BookmarkService {
 
     private final BookmarkRepository bookmarkRepository;
+    private final QuizAnswerRepository quizAnswerRepository;
     private final QuizRepository quizRepository;
     private final UserRepository userRepository;
 
     @Autowired
-    public BookmarkService(BookmarkRepository bookmarkRepository, QuizRepository quizRepository, UserRepository userRepository) {
+    public BookmarkService(BookmarkRepository bookmarkRepository, QuizRepository quizRepository, QuizAnswerRepository quizAnswerRepository, UserRepository userRepository) {
         this.bookmarkRepository = bookmarkRepository;
         this.quizRepository = quizRepository;
+        this.quizAnswerRepository = quizAnswerRepository;
         this.userRepository = userRepository;
     }
 
@@ -34,8 +37,9 @@ public class BookmarkService {
         User user = userRepository.findOneWithAuthoritiesByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found: " + username));
 
-        Quiz quiz = quizRepository.findById(requestDTO.getQuizId())
-                .orElseThrow(() -> new RuntimeException("Quiz not found: " + requestDTO.getQuizId()));
+        Quiz quiz = quizAnswerRepository.findByQuizIdAndIsCorrectFalse(requestDTO.getQuizId())
+                .orElseThrow(() -> new RuntimeException("Incorrect quiz not found for quizId: " + requestDTO.getQuizId()))
+                .getQuiz();
 
         // 북마크 객체 생성
         Bookmark bookmark = new Bookmark();

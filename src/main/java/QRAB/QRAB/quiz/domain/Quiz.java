@@ -1,5 +1,6 @@
 package QRAB.QRAB.quiz.domain;
 
+import QRAB.QRAB.note.domain.Note;
 import jakarta.persistence.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,9 +24,17 @@ public class Quiz {
     private String explanation;
     private String quizSummary;
 
+    @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<QuizAnswer> quizAnswers;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "quiz_set_id")
     private QuizSet quizSet;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "note_id")
+    private Note note;
+
 
     // Choices를 리스트로 변환
     public List<String> getChoicesAsList() {
