@@ -5,6 +5,8 @@ import QRAB.QRAB.category.dto.CategoryChildResponseDTO;
 import QRAB.QRAB.category.dto.CategoryParentResponseDTO;
 import QRAB.QRAB.category.repository.CategoryRepository;
 import QRAB.QRAB.category.service.CategoryService;
+import QRAB.QRAB.email.domain.Email;
+import QRAB.QRAB.email.repository.EmailRepository;
 import QRAB.QRAB.friend.domain.Friendship;
 import QRAB.QRAB.friend.dto.AddFriendNoteRequestDTO;
 import QRAB.QRAB.friend.dto.FriendAddRequestDTO;
@@ -44,6 +46,9 @@ public class FriendService {
     private final NoteService noteService;
     private final FriendshipRepository friendshipRepository;
     private final NoteRepository noteRepository;
+
+    private final EmailRepository emailRepository;
+
     @Transactional(readOnly = false)
     public ResponseEntity<?> saveFriend(FriendAddRequestDTO friendAddRequestDTO){
         User user = userRepository.findOneWithAuthoritiesByUsername(friendAddRequestDTO.getEmail())//user 객체
@@ -86,14 +91,18 @@ public class FriendService {
         String currentUserEmail = authentication.getName();
         User user = userRepository.findByUsername(currentUserEmail)
                 .orElseThrow(() -> new NotFoundMemberException("Could not find user with email: " + currentUserEmail));
-
+        Optional<Email> email = emailRepository.findTopByToEmailOrderByCreatedAtDesc(user.getUsername());
         // 프로필 목록을 반환 : 닉네임 전화번호 이미지 전공 // 알림 큐랩 스코어
-        ProfileResponseDTO userProfileResponse = ProfileResponseDTO.fromEntity(user);
+        ProfileResponseDTO userProfileResponse = ProfileResponseDTO.fromEntity(user, email);
+
         Map<String, Object> result = new HashMap<>();
         result.put("nickname", userProfileResponse.getNickname());
         result.put("phoneNumber", userProfileResponse.getPhoneNumber());
         result.put("imgUrl", userProfileResponse.getImgUrl());
         result.put("majorIds", userProfileResponse.getMajorNames());
+        result.put("hour", userProfileResponse.getHour());
+        result.put("minute", userProfileResponse.getMinute());
+        result.put("ampm", userProfileResponse.getAmpm());
 
 
         //친구 목록을 반환

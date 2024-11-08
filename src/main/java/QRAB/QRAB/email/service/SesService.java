@@ -1,8 +1,10 @@
 package QRAB.QRAB.email.service;
 
 
+import QRAB.QRAB.email.domain.Email;
 import QRAB.QRAB.email.dto.SesRequestDTO;
 import QRAB.QRAB.email.dto.SesResponseDTO;
+import QRAB.QRAB.email.repository.EmailRepository;
 import QRAB.QRAB.user.domain.User;
 import QRAB.QRAB.user.excepiton.NotFoundMemberException;
 import QRAB.QRAB.user.repository.UserRepository;
@@ -24,13 +26,14 @@ import java.util.concurrent.TimeUnit;
 
 
 @Service
-@Transactional(readOnly = true)
+@Transactional(readOnly = false)
 @RequiredArgsConstructor
 public class SesService {
 
     private final AmazonSimpleEmailService sesClient;
     private final TemplateEngine templateEngine;
     private final UserRepository userRepository;
+    private final EmailRepository emailRepository;
 
     private final TaskScheduler taskScheduler;
 
@@ -66,6 +69,16 @@ public class SesService {
         }
         System.out.println(hour + " " + minute + " Scheduling email for: " + sesRequestDTO.getTo() + " at " + scheduledTime);
 
+        // Email 엔티티 생성 후 저장
+        Email email = Email.builder()
+                .toEmail(sesRequestDTO.getTo())
+                .hour(sesRequestDTO.getHour())
+                .minute(sesRequestDTO.getMinute())
+                .ampm(sesRequestDTO.getAmpm())
+                .scheduledTime(scheduledTime)
+                .build();
+
+        emailRepository.save(email);
         // LocalDateTime을 ZonedDateTime으로 변환 후 Instant로 변환
         ZonedDateTime zonedDateTime = scheduledTime.atZone(ZoneId.systemDefault());
         Instant instant = zonedDateTime.toInstant();
