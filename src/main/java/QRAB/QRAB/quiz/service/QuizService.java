@@ -26,9 +26,7 @@ import jakarta.persistence.EntityNotFoundException;
 
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -247,19 +245,37 @@ public class QuizService {
     }
 
     // 특정 노트 unsolved 퀴즈 세트 조회
-    public Page<QuizSetDTO> findUnsolvedQuizSetsByNoteId(Long noteId, int page) {
-        Pageable pageable = PageRequest.of(page, 6); // 한 페이지에 6개로 설정
-        Page<QuizSet> unsolvedQuizSets = quizSetRepository.findByNoteIdAndStatus(noteId, "unsolved", pageable);
+    public Map<String, Object> findUnsolvedQuizSetsByNoteId(Long noteId, int page) {
+        // Note 조회 및 제목 가져오기
+        Note note = noteRepository.findById(noteId)
+                .orElseThrow(() -> new RuntimeException("Note not found with id: " + noteId));
+        String noteTitle = note.getTitle();
 
-        return unsolvedQuizSets.map(quizSet -> new QuizSetDTO(
-                quizSet.getQuizSetId(),
-                quizSet.getNote() != null ? quizSet.getNote().getId() : null,
-                quizSet.getUser() != null ? quizSet.getUser().getUserId() : null,
-                quizSet.getTotalQuestions(),
-                quizSet.getCreatedAt(),
-                quizSet.getStatus(),
-                quizSet.getAccuracyRate()
-        ));
+        Pageable pageable = PageRequest.of(page, 6); // 한 페이지에 6개
+        Page<QuizSetDTO> quizSetDTOs = quizSetRepository.findByNoteIdAndStatus(noteId, "unsolved", pageable)
+                .map(quizSet -> new QuizSetDTO(
+                        quizSet.getQuizSetId(),
+                        quizSet.getNote() != null ? quizSet.getNote().getId() : null,
+                        quizSet.getUser() != null ? quizSet.getUser().getUserId() : null,
+                        quizSet.getTotalQuestions(),
+                        quizSet.getCreatedAt(),
+                        quizSet.getStatus(),
+                        quizSet.getAccuracyRate()
+                ));
+
+        // 최상위 응답 데이터 구성
+        Map<String, Object> response = new HashMap<>();
+        response.put("noteTitle", noteTitle); // 최상위 noteTitle 추가
+        response.put("content", quizSetDTOs.getContent());
+        response.put("totalElements", quizSetDTOs.getTotalElements());
+        response.put("totalPages", quizSetDTOs.getTotalPages());
+        response.put("size", quizSetDTOs.getSize());
+        response.put("number", quizSetDTOs.getNumber());
+        response.put("first", quizSetDTOs.isFirst());
+        response.put("last", quizSetDTOs.isLast());
+        response.put("numberOfElements", quizSetDTOs.getNumberOfElements());
+
+        return response;
     }
 
     // 오답 복습 퀴즈 조회
