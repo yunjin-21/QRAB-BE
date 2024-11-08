@@ -18,6 +18,8 @@
 
 <br>
 
+## 💻 데모 영상
+https://drive.google.com/drive/folders/1ovld_jb59vhZter_R0bxXzgqh8VYJkHI
 
 ## 📊 기술 스택
 - Java 17
@@ -26,7 +28,7 @@
 - AWS RDS, EC2, S3, Route53, ACM, Elastic Beanstalk, SES
 - JSoup, Selenium Web Driver, Apache PDFBox, Naver Clover OCR API, ChatGPT-4o mini API
 
-## 📊 ERD 설계
+## ⚙️ ERD 설계
 
 ![ER 다이어그램 이미지](https://drive.google.com/uc?id=1ey8cE0OzjvX_C4eHsDdJUubtrPsBgp8R) 
 
