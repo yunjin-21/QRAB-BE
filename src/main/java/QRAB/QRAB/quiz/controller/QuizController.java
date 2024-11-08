@@ -100,4 +100,11 @@ public class QuizController {
         return ResponseEntity.ok(recentWrongQuizzes);
     }
 
+    // 응용 퀴즈 생성 엔드포인트
+    @PostMapping("/regenerate")
+    public ResponseEntity<QuizSetDTO> regenerateQuiz(@RequestBody QuizRegenerationRequestDTO request) {
+        QuizSetDTO quizSetResponse = quizService.regenerateQuiz(request);
+        return ResponseEntity.ok(quizSetResponse);
+    }
+
 }

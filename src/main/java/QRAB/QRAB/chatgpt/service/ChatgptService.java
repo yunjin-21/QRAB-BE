@@ -68,7 +68,7 @@ public class ChatgptService {
 
         return chatgptResponseDTO != null ? chatgptResponseDTO.getFirstChoiceContent() : "";
     }
-    // 퀴즈 생성
+    // 퀴즈 생성, 응용 퀴즈 생성
     public List<Quiz> generateQuiz(String quizPrompt) {
         ChatgptRequestDTO chatgptRequestDTO = new ChatgptRequestDTO(model, quizPrompt);
         ChatgptResponseDTO chatgptResponseDTO = restTemplate.postForObject(apiUrl, chatgptRequestDTO, ChatgptResponseDTO.class);
