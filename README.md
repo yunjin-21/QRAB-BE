@@ -13,7 +13,7 @@
 |[이윤진](https://github.com/yunjin-21)|
 | :-: |
 |  <img src="https://avatars.githubusercontent.com/yunjin-21" width="150"> |
-|DB 설계 및 API 명세서 작성,<br> 회원가입/로그인 API 개발,<br>Category API 개발,<br>Note API 개발,<br>Friendship API 개발,<br>Profile API 개발,<br>MainPage API 개발,<br> 배포 환경 세팅 및 구축|
+|DB 설계 및 API 명세서 작성,<br> 회원가입/로그인 API 개발,<br>Category API 개발,<br>Note API 개발,<br>Friendship API 개발,<br>Profile API 개발,<br>MainPage API 개발,<br> AWS 기반 배포 환경 세팅 및 구축|
 
 
 <br>
