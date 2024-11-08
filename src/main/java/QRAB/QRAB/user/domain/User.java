@@ -5,6 +5,7 @@ import QRAB.QRAB.friend.domain.Friendship;
 import QRAB.QRAB.major.domain.Major;
 import QRAB.QRAB.note.domain.Note;
 import QRAB.QRAB.profile.domain.Profile;
+import QRAB.QRAB.record.domain.Record;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -40,6 +41,9 @@ public class User {
     @Column(name = "activated")
     private boolean activated;
 
+    @Column(name = "notification")
+    private int notification; //알림 설정 기본값 0 -> 비공개
+
     @ManyToMany
     @JoinTable(
             name = "user_authority",// 중간 테이블 user_authority 이름
@@ -67,5 +71,7 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Profile profile;
 
+    @OneToMany(mappedBy = "user")
+    private List<Record> records = new ArrayList<>();
 
 }

@@ -1,4 +1,4 @@
-/*package QRAB.QRAB.sms.dto;
+package QRAB.QRAB.profile.dto;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -8,9 +8,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class SmsRequestDTO {
-    private String phoneNumber;
-    private String message;
-
+public class NotificationRequestDTO {
+    private String email;
 }
-*/

@@ -58,13 +58,15 @@ public class SecurityConfig {
                 )
                 //인증없이 접근을 허용할 경로 설정
                 .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
-                        .requestMatchers("/users/check-email", "/users/check-nickname", "/users/authenticate", "/users/signup", "/users/liberal-arts", "/users/natural-sciences", "/users/entertainment-sports").permitAll() //원래 토큰이 없는 상태에서 시도하므로
+                        .requestMatchers("/users", "/users/health", "/users/check-email", "/users/check-nickname", "/users/authenticate", "/users/signup", "/users/liberal-arts", "/users/natural-sciences", "/users/entertainment-sports").permitAll() //원래 토큰이 없는 상태에서 시도하므로
                         .anyRequest().authenticated()
                 )
                 // 세션을 사용하지 않고 JWT 토큰을 사용하기 때문에 STATELESS 모드를 설정
                 .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+                // HTTP Basic Authentication 비활성화
+                .httpBasic(httpBasicConfigurer -> httpBasicConfigurer.disable())
                 .with(new JwtSecurityConfig(tokenProvider), customizer -> {});
         return http.build();
     }

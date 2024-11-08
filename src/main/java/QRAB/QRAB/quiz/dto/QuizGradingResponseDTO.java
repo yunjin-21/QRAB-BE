@@ -6,6 +6,8 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 @Getter
 @Setter
 public class QuizGradingResponseDTO {
@@ -25,10 +27,23 @@ public class QuizGradingResponseDTO {
         private List<String> choices;
         private int selectedAnswer;
         private int correctAnswer;
-        private boolean isCorrect;
         private String explanation;
+        private boolean isCorrect;
 
         public void setIsCorrect(boolean isCorrect) {
+            this.isCorrect = isCorrect;
+        }
+        //Jackson이 correct로 직렬화하는 것 방지
+        @JsonProperty("isCorrect")
+        public boolean isCorrect() {
+            return isCorrect;
+        }
+
+        public Boolean getCorrect() {
+            return isCorrect;
+        }
+
+        public void setCorrect(Boolean isCorrect) {
             this.isCorrect = isCorrect;
         }
     }

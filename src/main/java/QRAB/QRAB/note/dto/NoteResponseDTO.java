@@ -10,8 +10,8 @@ public class NoteResponseDTO {
     private Long noteId;
     private String title;
     private String chatgptContent;
-    private String categoryName;
-    private String parentCategoryName;
+    private String categoryName; //자식
+    private String parentCategoryName; //부모
     private String fileOrUrl;
 
     public static NoteResponseDTO fromEntity(Note note) {

@@ -3,6 +3,8 @@ package QRAB.QRAB.user.service;
 
 import QRAB.QRAB.profile.domain.Profile;
 import QRAB.QRAB.profile.repository.ProfileRepository;
+import QRAB.QRAB.record.domain.Record;
+import QRAB.QRAB.record.repository.RecordRepository;
 import QRAB.QRAB.user.domain.Authority;
 import QRAB.QRAB.user.domain.User;
 import QRAB.QRAB.user.dto.MajorResponseDTO;
@@ -17,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -29,6 +32,7 @@ public class UserService {
 
     private final ProfileRepository profileRepository;
 
+    private final RecordRepository recordRepository;
     @Transactional
     public boolean checkEmailDuplicate(String email) {
         return userRepository.findByUsername(email).isPresent();
@@ -49,6 +53,9 @@ public class UserService {
         if (userRepository.findOneWithAuthoritiesByUsername(userDto.getUsername()).orElse(null) != null) {
             throw new DuplicateMemberException("이미 사용 중인 이메일입니다.");
         }
+        if(!userDto.getPassword().equals(userDto.getPasswordConfirm())){
+            throw new IllegalArgumentException("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
+        }
 
         List<Major> majorList = majorRepository.findAllByNameIn(new ArrayList<>(userDto.getMajorNames()));
         //List<Major> majorList = majorRepository.findAllById(userDto.getMajorIds());
@@ -66,6 +73,7 @@ public class UserService {
                 .authorities(Collections.singleton(authority))
                 .activated(true) //활성화된 상태로 설정
                 .majors(majorSet)
+                .notification(0)//비공개로 설정
                 .build();
 
         // Profile 엔티티 생성 (User와 연관)
@@ -73,6 +81,7 @@ public class UserService {
                 .user(user) // User와 연결
                 .nickname(userDto.getNickname()) // User와 동일한 값 설정
                 .email(userDto.getUsername())    // User의 이메일을 Profile에도 사용
+                .password(userDto.getPassword())
                 .phoneNumber(userDto.getPhoneNumber()) // User의 전화번호를 Profile에도 사용
                 .build();
         // User와 Profile을 함께 저장
@@ -119,5 +128,50 @@ public class UserService {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(majorResponseDTOS);
+    }
+    @Transactional
+    public void logDailyLogin(String username){
+        User user = userRepository.findOneWithAuthoritiesByUsername(username)
+                .orElseThrow(()-> new RuntimeException("Could not find user with email"));
+
+        LocalDate today = LocalDate.now();
+        boolean alreadyLoggedToday = recordRepository.existsByUserAndLoginDate(user, today);
+
+        if(!alreadyLoggedToday){//오늘 처음 로그인함
+            Record record = Record.builder()
+                    .user(user)
+                    .loginDate(today)
+                    .build();
+            recordRepository.save(record);
+        }
+        System.out.println("Saving record for user: " + user.getUsername() + " on " + today);
+    }
+
+    //이번달 총 학습일 수 계산
+    @Transactional
+    public int getTotalLearningDays(User user){
+        LocalDate now = LocalDate.now();
+        return (int) user.getRecords().stream()
+                .filter(record -> record.getLoginDate().getMonth() == now.getMonth())
+                .count();
+    }
+
+    //연속 학습일 수 계산
+    @Transactional
+    public int getConsecutiveLearningDays(User user){
+        List<Record> records = user.getRecords().stream()
+                .sorted(Comparator.comparing(Record::getLoginDate).reversed()).toList();
+        int consecutiveDays = 0;
+        LocalDate currentDate = LocalDate.now();
+
+        for(Record record : records){
+            if(record.getLoginDate().equals(currentDate)){
+                consecutiveDays++;
+                currentDate = currentDate.minusDays(1);
+            }else{
+                break;
+            }
+        }
+        return consecutiveDays;
     }
 }

@@ -46,7 +46,8 @@ public class NoteService {
             note.setRestrictedAccess(0); //공개로 변경
         }
         Note savedNote = noteRepository.save(note); // note 객체를 db에 저장
-        return ResponseEntity.ok(viewRequestDTO);
+        ViewResponseDTO responseDTO = new ViewResponseDTO(savedNote.getId(), savedNote.getRestrictedAccess());
+        return ResponseEntity.ok(responseDTO);
     }
 
     @Transactional(readOnly = true)

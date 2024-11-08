@@ -99,23 +99,18 @@ public class NoteController {
 
     }
 
-
-    @GetMapping("/{categoryId}")
-    public ResponseEntity<?> getNotePageByCategory(@PathVariable("categoryId") Long categoryId, @RequestParam(name = "page", defaultValue = "0") int page) {
+    private ResponseEntity<?> getNotesByCategoryResponse(Long categoryId, int page) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
-        // 사용자가 생성한 상위 카테고리 조회
+        // 상위 카테고리 조회
         List<CategoryParentResponseDTO> parentCategories = categoryService.getUserParentCategories(username);
 
         // 하위 카테고리 조회
         List<CategoryChildResponseDTO> childCategories = categoryService.getUserChildCategories(username);
 
-        List<NoteResponseDTO> sixNotesInfo;
-
         // 카테고리 ID가 제공된 경우 해당 카테고리의 노트 조회, 그렇지 않으면 최신 노트 조회
-        sixNotesInfo = noteService.getNotesByCategory(username, categoryId, page);
-
+        List<NoteResponseDTO> sixNotesInfo = noteService.getNotesByCategory(username, categoryId, page);
 
         // 최근 노트 3개 조회
         List<RecentNoteDTO> threeNoteInfo = noteService.getUserRecentNotesBy3(username);
@@ -129,5 +124,10 @@ public class NoteController {
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping("/{categoryId}")
+    public ResponseEntity<?> getNotePageByCategory(@PathVariable("categoryId") Long categoryId,
+                                                   @RequestParam(name = "page", defaultValue = "0") int page) {
+        return getNotesByCategoryResponse(categoryId, page);
+    }
 
 }
