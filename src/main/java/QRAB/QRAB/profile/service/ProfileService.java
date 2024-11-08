@@ -6,6 +6,7 @@ import QRAB.QRAB.note.config.S3Config;
 import QRAB.QRAB.profile.domain.Profile;
 import QRAB.QRAB.profile.dto.MajorUpdateDTO;
 import QRAB.QRAB.profile.dto.NotificationRequestDTO;
+import QRAB.QRAB.profile.dto.NotificationResponseDTO;
 import QRAB.QRAB.profile.dto.ProfileUpdateDTO;
 import QRAB.QRAB.profile.repository.ProfileRepository;
 import QRAB.QRAB.user.domain.User;
@@ -90,6 +91,7 @@ public class ProfileService {
             user.setNotification(0);
         }
         User savedUser = userRepository.save(user);
-        return ResponseEntity.ok(notificationRequestDTO);
+        NotificationResponseDTO notificationResponseDTO = new NotificationResponseDTO(savedUser.getNotification());
+        return ResponseEntity.ok(notificationResponseDTO);
     }
 }
