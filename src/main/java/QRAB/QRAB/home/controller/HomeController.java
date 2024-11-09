@@ -47,7 +47,7 @@ public class HomeController {
         int consecutiveLearningDays = userService.getConsecutiveLearningDays(user); //연속 학습 일수
         int totalLearningDays = userService.getTotalLearningDays(user);//이번달 총 학습일수
         int constellations = totalLearningDays / 3; //별자리개수
-        List<RecentWrongQuizDTO> recentWrongQuizzes = quizService.getRecentWrongQuizzes(); // 틀린 퀴즈 조회
+        //List<RecentWrongQuizDTO> recentWrongQuizzes = quizService.getRecentWrongQuizzes(username); // 틀린 퀴즈 조회
         List<UnsolvedRecentQuizSetDTO> unsolvedQuizSetResponseDTOS = quizService.getRecentUnsolvedQuizSets(username); //안푼 퀴즈 세트의 노트 최근 3개 조회
 
         //친구
@@ -58,7 +58,7 @@ public class HomeController {
         result.put("consecutiveLearningDays", consecutiveLearningDays);
         result.put("totalLearningDays", totalLearningDays);
         result.put("constellations", constellations);
-        result.put("recentWrongQuizzes", recentWrongQuizzes);
+        //result.put("recentWrongQuizzes", recentWrongQuizzes);
         result.put("unsolvedQuizSetResponseDTOS", unsolvedQuizSetResponseDTOS);
         result.put("friendScoreDTOS", friendScoreDTOS);
 

@@ -17,6 +17,7 @@ public class CorsConfig {
         config.addAllowedOrigin("http://qrab.site");
         config.addAllowedOrigin("https://qrab.site");
         config.addAllowedOrigin("https://qrab-omega.vercel.app");
+        config.addAllowedOrigin("https://qrab-five.vercel.app");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.setMaxAge(6000L);

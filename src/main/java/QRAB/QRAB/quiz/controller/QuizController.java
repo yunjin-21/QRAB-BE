@@ -9,6 +9,7 @@ import QRAB.QRAB.quiz.service.QuizService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -89,16 +90,19 @@ public class QuizController {
     public ResponseEntity<QuizGradingResponseDTO> gradeReviewWrongQuiz(
             @PathVariable Long quizSetId,
             @RequestBody QuizGradingRequestDTO requestDTO) {
+
         QuizGradingResponseDTO response = quizService.gradeReviewWrongQuiz(quizSetId, requestDTO);
         return ResponseEntity.ok(response);
     }
 
     // 최근 틀린 퀴즈 조회 엔드포인트
-    @GetMapping("/recent-wrong")
+    /*@GetMapping("/recent-wrong")
     public ResponseEntity<List<RecentWrongQuizDTO>> getRecentWrongQuizzes() {
-        List<RecentWrongQuizDTO> recentWrongQuizzes = quizService.getRecentWrongQuizzes();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        List<RecentWrongQuizDTO> recentWrongQuizzes = quizService.getRecentWrongQuizzes(username);
         return ResponseEntity.ok(recentWrongQuizzes);
-    }
+    }*/
 
     // 응용 퀴즈 생성 엔드포인트
     @PostMapping("/regenerate")

@@ -1,5 +1,7 @@
 package QRAB.QRAB.quiz.domain;
 
+import QRAB.QRAB.BaseTimeEntity;
+import com.fasterxml.jackson.databind.ser.Serializers;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -7,7 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-public class QuizAnswer {
+public class QuizAnswer extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long answerId;
@@ -23,6 +25,8 @@ public class QuizAnswer {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "quiz_set_id")
     private QuizSet quizSet;
+
+
 
     private int selectedAnswer;
     private boolean isCorrect;
