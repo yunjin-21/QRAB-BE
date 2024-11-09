@@ -15,6 +15,7 @@ public class RecentNoteDTO {
     private String parentCategoryName;
     private LocalDateTime createdAt;
     private String chatgptContent;
+    private String fileOrUrl;
 
     public static RecentNoteDTO fromEntity(Note note){
         return new RecentNoteDTO(
@@ -23,6 +24,9 @@ public class RecentNoteDTO {
                 note.getCategory().getName(),
                 note.getCategory().getParentCategory() != null ? note.getCategory().getParentCategory().getName() : "",
                 note.getCreatedAt(),
-                note.getChatgptContent().length() > 250 ? note.getChatgptContent().substring(0, 250) : note.getChatgptContent());
+                note.getChatgptContent().length() > 250 ? note.getChatgptContent().substring(0, 250) : note.getChatgptContent(),
+                note.getFile() != null ? note.getFile() : note.getUrl()
+        );
     }
+
 }
