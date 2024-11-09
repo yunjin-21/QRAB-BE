@@ -357,20 +357,21 @@ public class QuizService {
         return responseDTO;
     }
 
-    // 최근 틀린 퀴즈 3개 조회
-    /*@Transactional(readOnly = true)
-    public List<RecentWrongQuizDTO> getRecentWrongQuizzes(String username) {
-        User user = userRepository.findOneWithAuthoritiesByUsername(username)
-                .orElseThrow(()-> new RuntimeException("Could not find user with email"));
-
-        List<QuizAnswer> recentWrongQuizAnswers = quizAnswerRepository.findTop3ByQuizSetStatusAndUserAndIsCorrectFalseOrderByQuizCreatedAtDesc("solved", user);
-
-        return recentWrongQuizAnswers.stream()
-                .map(RecentWrongQuizDTO::fromEntity)
+    // 최근 틀린 퀴즈 2개 조회
+    public List<RecentWrongQuizDTO> getRecentWrongQuizzes() {
+        List<QuizAnswer> recentWrongAnswers = quizAnswerRepository.findRecentWrongAnswers();
+        return recentWrongAnswers.stream()
+                .limit(3) // 최근 틀린 퀴즈 3개만 반환
+                .map(answer -> new RecentWrongQuizDTO(
+                        answer.getQuiz().getQuizId(),
+                        answer.getQuiz().getQuestion(),
+                        answer.getQuiz().getChoicesAsList(),
+                        answer.getSelectedAnswer(),
+                        answer.getQuiz().getCorrectAnswer(),
+                        answer.isCorrect()
+                ))
                 .collect(Collectors.toList());
-
-
-    }*/
+    }
     @Transactional(readOnly = true)
     public List<UnsolvedRecentQuizSetDTO> getRecentUnsolvedQuizSets(String username){
         User user = userRepository.findOneWithAuthoritiesByUsername(username)

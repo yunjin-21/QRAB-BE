@@ -36,8 +36,5 @@ public interface QuizAnswerRepository extends JpaRepository<QuizAnswer, Long> {
     List<QuizAnswer> findRecentWrongAnswers();
 
 
-
-    /*@Query("SELECT qa FROM QuizAnswer qa JOIN qa.quiz q JOIN q.quizSet qs WHERE qs.status = :status AND qs.user = :user AND qa.isCorrect = false ORDER BY q.createdAt DESC")
-    List<QuizAnswer> findTop3ByQuizSetStatusAndUserAndIsCorrectFalseOrderByQuizCreatedAtDesc(@Param("status") String status, @Param("user") User user);*/
 }
 
