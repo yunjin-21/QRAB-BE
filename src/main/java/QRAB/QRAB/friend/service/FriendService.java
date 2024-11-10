@@ -129,10 +129,10 @@ public class FriendService {
             friendEmail = friendship.getFriend().getUsername();
         }
         // 친구가 생성한 상위 카테고리 조회 - 단 친구의 노트가 0인 경우의 카테고리만 필터링해서 제공
-        List<CategoryParentResponseDTO> parentCategories = categoryService.getFriendParentCategories(friendEmail);
+        List<CategoryParentResponseDTO> parentCategories = categoryService.getUserParentCategories(friendEmail);
 
         // 하위 카테고리 조회
-        List<CategoryChildResponseDTO> childCategories = categoryService.getFriendChildCategories(friendEmail);
+        List<CategoryChildResponseDTO> childCategories = categoryService.getUserChildCategories(friendEmail);
 
         // 노트의 제목, 요약본 (10자), 카테고리 조회
         List<FriendNoteResponseDTO> sixFriendsNotesInfo = noteService.getFriendNotes(friendEmail, page);
