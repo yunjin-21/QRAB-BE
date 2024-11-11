@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CategoryAnalysisDTO {
+public class CategoryAnalysisResponseDTO {
     private String parentCategoryName;
     private String categoryName;
     private int solvedQuizCount;
