@@ -59,7 +59,7 @@ public class ChatgptService {
 
         String prompt = fewShotExamples + "\n\n" + content + """
         
-        Summarize this content in a concise, organized format like the above examples. When you print it out, don't get # or *, just get the text. Focus on key concepts and maintain logical flow. Make it as detailed and comprehensive as possible, enough to fill an A4 page.
+        Summarize this content in a concise, organized format like the above examples. When you print it out, don't get # or *, just get the text. Focus on key concepts and maintain logical flow. Make it as detailed and comprehensive as possible, enough to fill three pages. Be generous of the amount of the text.
         """;
 
         ChatgptRequestDTO chatgptRequestDTO = new ChatgptRequestDTO(model, prompt);
