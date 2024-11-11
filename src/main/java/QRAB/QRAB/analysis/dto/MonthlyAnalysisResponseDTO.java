@@ -13,6 +13,6 @@ public class MonthlyAnalysisResponseDTO {
     private int learningDays;
     private int solvedQuizCount;
     private float averageAccuracy;
-    private List<CategoryAnalysisDTO> categories;
+    private List<CategoryAnalysisResponseDTO> categories;
 }
 

@@ -2,18 +2,14 @@ package QRAB.QRAB.analysis.service;
 
 import QRAB.QRAB.analysis.domain.MonthlyAnalysis;
 import QRAB.QRAB.analysis.dto.MonthlyAnalysisResponseDTO;
-import QRAB.QRAB.analysis.dto.CategoryAnalysisDTO;
+import QRAB.QRAB.analysis.dto.CategoryAnalysisResponseDTO;
 import QRAB.QRAB.analysis.repository.CategoryAnalysisRepository;
 import QRAB.QRAB.analysis.repository.MonthlyAnalysisRepository;
-import QRAB.QRAB.category.domain.Category;
 import QRAB.QRAB.user.domain.User;
 import QRAB.QRAB.user.repository.UserRepository;
 import QRAB.QRAB.user.util.SecurityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -47,8 +43,8 @@ public class AnalysisService {
                 .findByUserAndMonth(user, formattedMonth)
                 .orElseThrow(() -> new RuntimeException("월별 분석 데이터를 찾을 수 없습니다."));
 
-        List<CategoryAnalysisDTO> categories = categoryAnalysisRepository.findByUserAndMonth(user, formattedMonth).stream()
-                .map(categoryAnalysis -> new CategoryAnalysisDTO(
+        List<CategoryAnalysisResponseDTO> categories = categoryAnalysisRepository.findByUserAndMonth(user, formattedMonth).stream()
+                .map(categoryAnalysis -> new CategoryAnalysisResponseDTO(
                         categoryAnalysis.getCategory().getParentCategory() != null
                                 ? categoryAnalysis.getCategory().getParentCategory().getName()
                                 : null,

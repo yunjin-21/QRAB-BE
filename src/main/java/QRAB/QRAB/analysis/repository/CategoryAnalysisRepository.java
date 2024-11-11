@@ -17,4 +17,6 @@ public interface CategoryAnalysisRepository extends JpaRepository<CategoryAnalys
     @Query("SELECT ca FROM CategoryAnalysis ca WHERE ca.user = :user AND ca.category.id = :categoryId AND ca.month = :month")
     Optional<CategoryAnalysis> findByUserAndCategoryAndMonth(@Param("user") User user, @Param("categoryId") Long categoryId, @Param("month") String month);
 
+    @Query("SELECT ca FROM CategoryAnalysis ca WHERE ca.user = :user AND ca.month >= :startMonth")
+    List<CategoryAnalysis> findByUserAndMonthGreaterThanEqual(@Param("user") User user, @Param("startMonth") String startMonth);
 }
