@@ -1,7 +1,9 @@
 package QRAB.QRAB.analysis.controller;
 
 import QRAB.QRAB.analysis.dto.MonthlyAnalysisResponseDTO;
+import QRAB.QRAB.analysis.dto.MonthlySummaryResponseDTO;
 import QRAB.QRAB.analysis.service.AnalysisService;
+import QRAB.QRAB.analysis.service.DailyAnalysisService;
 import QRAB.QRAB.user.domain.User;
 import QRAB.QRAB.user.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
@@ -16,11 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class AnalysisController {
 
     private final AnalysisService analysisService;
-    private final UserRepository userRepository; // UserRepository 주입
+    private final DailyAnalysisService dailyAnalysisService;
 
-    public AnalysisController(AnalysisService analysisService, UserRepository userRepository) {
+    public AnalysisController(AnalysisService analysisService, DailyAnalysisService dailyAnalysisService) {
         this.analysisService = analysisService;
-        this.userRepository = userRepository;
+        this.dailyAnalysisService = dailyAnalysisService;
     }
 
     @GetMapping("/monthly")
@@ -29,6 +31,14 @@ public class AnalysisController {
             @RequestParam("month") int month
     ) {
         MonthlyAnalysisResponseDTO response = analysisService.getMonthlyAnalysis(year, month);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/monthly-summary")
+    public ResponseEntity<MonthlySummaryResponseDTO> getMonthlySummary(
+            @RequestParam("year") int year,
+            @RequestParam("month") int month) {
+        MonthlySummaryResponseDTO response = dailyAnalysisService.getMonthlySummary(year, month);
         return ResponseEntity.ok(response);
     }
 

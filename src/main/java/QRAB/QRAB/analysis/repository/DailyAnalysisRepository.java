@@ -16,7 +16,6 @@ public interface DailyAnalysisRepository extends JpaRepository<DailyAnalysis, Lo
     @Query("SELECT da FROM DailyAnalysis da WHERE da.user = :user AND FUNCTION('DATE_FORMAT', da.date, '%Y-%m') = :month")
     List<DailyAnalysis> findByUserAndMonth(@Param("user") User user, @Param("month") String month);
 
-
     @Query("SELECT SUM(da.solvedQuizCount) FROM DailyAnalysis da WHERE da.user = :user AND da.date BETWEEN :startDate AND :endDate")
     int getTotalSolvedQuizCountBetweenDates(@Param("user") User user, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
