@@ -11,7 +11,9 @@ import QRAB.QRAB.user.util.SecurityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,9 +41,15 @@ public class AnalysisService {
 
         String formattedMonth = String.format("%d-%02d", year, month);
 
-        MonthlyAnalysis monthlyAnalysis = monthlyAnalysisRepository
-                .findByUserAndMonth(user, formattedMonth)
-                .orElseThrow(() -> new RuntimeException("월별 분석 데이터를 찾을 수 없습니다."));
+        // 월별 분석 데이터 조회
+        Optional<MonthlyAnalysis> monthlyAnalysisOpt = monthlyAnalysisRepository.findByUserAndMonth(user, formattedMonth);
+
+        // 월별 데이터가 없으면 기본값 반환
+        if (monthlyAnalysisOpt.isEmpty()) {
+            return new MonthlyAnalysisResponseDTO(0, 0, 0.0f, Collections.emptyList());
+        }
+
+        MonthlyAnalysis monthlyAnalysis = monthlyAnalysisOpt.get();
 
         List<CategoryAnalysisResponseDTO> categories = categoryAnalysisRepository.findByUserAndMonth(user, formattedMonth).stream()
                 .map(categoryAnalysis -> new CategoryAnalysisResponseDTO(
