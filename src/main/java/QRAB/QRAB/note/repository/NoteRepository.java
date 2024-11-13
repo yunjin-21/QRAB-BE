@@ -1,8 +1,10 @@
 package QRAB.QRAB.note.repository;
 
+import QRAB.QRAB.analysis.dto.CategoryQuizGenerationDTO;
 import QRAB.QRAB.category.domain.Category;
 import QRAB.QRAB.note.domain.Note;
 import QRAB.QRAB.note.dto.SummaryResponseDTO;
+import QRAB.QRAB.analysis.dto.WeakCategoryResponseDTO;
 import QRAB.QRAB.user.domain.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,4 +26,15 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
     // 다수의 Category를 받는 새 메서드
     @Query("SELECT n FROM Note n WHERE n.category IN :categories AND n.user = :user")
     Page<Note> findByCategoriesAndUser(@Param("categories") List<Category> categories, @Param("user") User user, Pageable pageable);
+
+    @Query("SELECT n FROM Note n WHERE n.user = :user")
+    List<Note> findNotesByUser(@Param("user") User user);
+
+    @Query("SELECT new QRAB.QRAB.analysis.dto.CategoryQuizGenerationDTO(" +
+            "c.name, CAST(SUM(n.quizGenerationCount) AS int)) " +
+            "FROM Note n " +
+            "JOIN n.category c " +
+            "WHERE n.user = :user " +
+            "GROUP BY c.name")
+    List<CategoryQuizGenerationDTO> findQuizGenerationCountPerCategory(@Param("user") User user);
 }

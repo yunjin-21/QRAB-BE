@@ -3,6 +3,7 @@ package QRAB.QRAB.analysis.controller;
 import QRAB.QRAB.analysis.dto.CategoryAnalysisResponseDTO;
 import QRAB.QRAB.analysis.dto.MonthlyAnalysisResponseDTO;
 import QRAB.QRAB.analysis.dto.MonthlySummaryResponseDTO;
+import QRAB.QRAB.analysis.dto.WeakCategoryResponseDTO;
 import QRAB.QRAB.analysis.service.AnalysisService;
 import QRAB.QRAB.analysis.service.CategoryAnalysisService;
 import QRAB.QRAB.analysis.service.DailyAnalysisService;
@@ -54,6 +55,14 @@ public class AnalysisController {
             @RequestParam("period") String period) {
         List<CategoryAnalysisResponseDTO> categories = categoryAnalysisService.getCategoryAnalysis(period);
         return ResponseEntity.ok(categories);
+    }
+
+    // 취약 카테고리 조회
+    @GetMapping(value = "/weak-categories", produces = "application/json")
+    public ResponseEntity<WeakCategoryResponseDTO> getWeakCategoryAnalysis() {
+        WeakCategoryResponseDTO response = categoryAnalysisService.getWeakCategoryAnalysis();
+        System.out.println(response);
+        return ResponseEntity.ok(response);
     }
 }
 
