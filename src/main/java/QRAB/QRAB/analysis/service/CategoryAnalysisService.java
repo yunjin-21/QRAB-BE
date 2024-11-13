@@ -2,8 +2,12 @@ package QRAB.QRAB.analysis.service;
 
 import QRAB.QRAB.analysis.domain.CategoryAnalysis;
 import QRAB.QRAB.analysis.dto.CategoryAnalysisResponseDTO;
+import QRAB.QRAB.analysis.dto.CategoryQuizGenerationDTO;
+import QRAB.QRAB.analysis.dto.WeakCategoryResponseDTO;
 import QRAB.QRAB.analysis.repository.CategoryAnalysisRepository;
 import QRAB.QRAB.category.domain.Category;
+import QRAB.QRAB.note.domain.Note;
+import QRAB.QRAB.note.repository.NoteRepository;
 import QRAB.QRAB.user.domain.User;
 import QRAB.QRAB.user.repository.UserRepository;
 import QRAB.QRAB.user.util.SecurityUtil;
@@ -12,22 +16,21 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class CategoryAnalysisService {
 
     private final CategoryAnalysisRepository categoryAnalysisRepository;
+    private final NoteRepository noteRepository;
     private final UserRepository userRepository;
 
     @Autowired
-    public CategoryAnalysisService(CategoryAnalysisRepository categoryAnalysisRepository,
+    public CategoryAnalysisService(CategoryAnalysisRepository categoryAnalysisRepository, NoteRepository noteRepository,
                                    UserRepository userRepository) {
         this.categoryAnalysisRepository = categoryAnalysisRepository;
+        this.noteRepository = noteRepository;
         this.userRepository = userRepository;
     }
 
@@ -115,6 +118,30 @@ public class CategoryAnalysisService {
         }
 
         return new ArrayList<>(groupedResults.values());
+    }
+
+    // 취약 카테고리 조회
+    public WeakCategoryResponseDTO getWeakCategoryAnalysis() {
+        String username = SecurityUtil.getCurrentUsername()
+                .orElseThrow(() -> new RuntimeException("인증된 사용자를 찾을 수 없습니다."));
+        User user = userRepository.findOneWithAuthoritiesByUsername(username)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + username));
+
+        // 가장 낮은 정답률 카테고리
+        CategoryAnalysis lowestAccuracyCategory = categoryAnalysisRepository.findByUser(user).stream()
+                .min(Comparator.comparing(CategoryAnalysis::getCategoryAccuracy))
+                .orElseThrow(() -> new RuntimeException("카테고리 분석 데이터가 없습니다."));
+
+        // 퀴즈세트 생성 횟수 조회
+        List<CategoryQuizGenerationDTO> quizGenerationList = noteRepository.findQuizGenerationCountPerCategory(user);
+
+        return new WeakCategoryResponseDTO(
+                new WeakCategoryResponseDTO.LowestAccuracyCategory(
+                        lowestAccuracyCategory.getCategory().getName(),
+                        lowestAccuracyCategory.getCategoryAccuracy()
+                ),
+                quizGenerationList
+        );
     }
 }
 
