@@ -15,6 +15,7 @@ import QRAB.QRAB.note.domain.Note;
 import QRAB.QRAB.note.repository.NoteRepository;
 import QRAB.QRAB.user.domain.User;
 import QRAB.QRAB.user.repository.UserRepository;
+import QRAB.QRAB.user.util.SecurityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -357,8 +358,16 @@ public class QuizService {
         return responseDTO;
     }
 
-    // 최근 틀린 퀴즈 2개 조회
+    // 최근 틀린 퀴즈 3개 조회
     public List<RecentWrongQuizDTO> getRecentWrongQuizzes() {
+        String username = SecurityUtil.getCurrentUsername()
+                .orElseThrow(() -> new RuntimeException("No authenticated user found"));
+        User user = userRepository.findOneWithAuthoritiesByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+
+        Pageable pageable = PageRequest.of(0, 3);
+        return quizRepository.findRecentWrongQuizzesByUserId(user.getUserId(), pageable).getContent();
+
         List<QuizAnswer> recentWrongAnswers = quizAnswerRepository.findRecentWrongAnswers();
         return recentWrongAnswers.stream()
                 .limit(3) // 최근 틀린 퀴즈 3개만 반환
@@ -372,6 +381,7 @@ public class QuizService {
                 ))
                 .collect(Collectors.toList());
     }
+  
     @Transactional(readOnly = true)
     public List<UnsolvedRecentQuizSetDTO> getRecentUnsolvedQuizSets(String username){
         User user = userRepository.findOneWithAuthoritiesByUsername(username)
