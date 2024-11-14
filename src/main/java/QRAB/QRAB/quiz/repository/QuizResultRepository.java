@@ -13,6 +13,7 @@ import java.util.Optional;
 public interface QuizResultRepository extends JpaRepository<QuizResult, Long> {
     @Query("SELECT qr FROM QuizResult qr WHERE qr.quizSet.status = 'solved'")
     Page<QuizResult> findAllSolvedQuizSets(Pageable pageable);
+
     Optional<QuizResult> findByQuizSetQuizSetId(Long quizSetId);
 }
 

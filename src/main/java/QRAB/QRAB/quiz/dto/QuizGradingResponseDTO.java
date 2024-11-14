@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Getter
 @Setter
 public class QuizGradingResponseDTO {
+    private Long quizSetId;
     private String noteTitle;
     private int score;
     private int correctCount;
