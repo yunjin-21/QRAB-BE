@@ -4,6 +4,8 @@ import QRAB.QRAB.bookmark.domain.Bookmark;
 import QRAB.QRAB.bookmark.dto.BookmarkedNoteResponseDTO;
 import QRAB.QRAB.bookmark.dto.BookmarkedQuizResponseDTO;
 import QRAB.QRAB.user.domain.User;
+import QRAB.QRAB.note.domain.Note;
+import QRAB.QRAB.quiz.domain.Quiz;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,7 +17,6 @@ import java.util.List;
 
 @Repository
 public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
-
     List<Bookmark> findByUser(User user);
 
     @Query("SELECT new QRAB.QRAB.bookmark.dto.BookmarkedNoteResponseDTO(" +
