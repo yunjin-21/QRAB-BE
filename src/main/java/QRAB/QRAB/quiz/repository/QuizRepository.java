@@ -1,5 +1,6 @@
 package QRAB.QRAB.quiz.repository;
 
+import QRAB.QRAB.note.domain.Note;
 import QRAB.QRAB.quiz.domain.Quiz;
 import QRAB.QRAB.quiz.domain.QuizAnswer;
 import QRAB.QRAB.user.domain.User;
@@ -16,6 +17,11 @@ import java.util.List;
 public interface QuizRepository extends JpaRepository<Quiz, Long> {
     List<Quiz> findByQuizSet_QuizSetId(Long quizSetId);
 
+    @Query("SELECT CASE WHEN COUNT(qs) > 0 THEN true ELSE false END " +
+            "FROM QuizSet qs " +
+            "WHERE qs.note.id = :noteId AND qs.status = :status")
+    boolean existsByNoteAndQuizSet_Status(@Param("noteId") Long noteId,
+                                          @Param("status") String status);
 
     @Query("SELECT DISTINCT q FROM Quiz q JOIN q.quizAnswers qa WHERE q.note.id = :noteId AND qa.isCorrect = false")
     List<Quiz> findQuizzesWithIncorrectAnswers(@Param("noteId") Long noteId);
