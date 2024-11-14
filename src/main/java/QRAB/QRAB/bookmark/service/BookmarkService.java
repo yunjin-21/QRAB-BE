@@ -4,6 +4,7 @@ import QRAB.QRAB.bookmark.domain.Bookmark;
 import QRAB.QRAB.bookmark.dto.BookmarkRequestDTO;
 import QRAB.QRAB.bookmark.dto.BookmarkResponseDTO;
 import QRAB.QRAB.bookmark.dto.BookmarkedNoteResponseDTO;
+import QRAB.QRAB.bookmark.dto.BookmarkedQuizResponseDTO;
 import QRAB.QRAB.bookmark.repository.BookmarkRepository;
 import QRAB.QRAB.quiz.domain.Quiz;
 import QRAB.QRAB.quiz.repository.QuizAnswerRepository;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class BookmarkService {
@@ -85,5 +87,16 @@ public class BookmarkService {
 
         Pageable pageable = PageRequest.of(page, 6);
         return bookmarkRepository.findBookmarkedNotesWithCounts(user.getUserId(), pageable);
+    }
+
+    // 특정 노트 북마크 조회
+    public List<BookmarkedQuizResponseDTO> getBookmarkedQuizzes(Long noteId) {
+        String username = SecurityUtil.getCurrentUsername()
+                .orElseThrow(() -> new RuntimeException("현재 인증된 사용자가 없습니다."));
+
+        User user = userRepository.findOneWithAuthoritiesByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+
+        return bookmarkRepository.findBookmarkedQuizzesByNoteId(noteId, user.getUserId());
     }
 }

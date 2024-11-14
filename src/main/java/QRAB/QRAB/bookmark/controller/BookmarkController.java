@@ -3,6 +3,7 @@ package QRAB.QRAB.bookmark.controller;
 import QRAB.QRAB.bookmark.dto.BookmarkRequestDTO;
 import QRAB.QRAB.bookmark.dto.BookmarkResponseDTO;
 import QRAB.QRAB.bookmark.dto.BookmarkedNoteResponseDTO;
+import QRAB.QRAB.bookmark.dto.BookmarkedQuizResponseDTO;
 import QRAB.QRAB.bookmark.service.BookmarkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -11,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -45,6 +47,13 @@ public class BookmarkController {
         Page<BookmarkedNoteResponseDTO> bookmarkedNotesPage = bookmarkService.getBookmarkedNotes(page);
         Map<String, Object> response = new HashMap<>();
         response.put("bookmarkedNotes", bookmarkedNotesPage.getContent());
+        return ResponseEntity.ok(response);
+    }
+
+    // 특정 노트 북마크 조회
+    @GetMapping("/notes/{noteId}/quizzes")
+    public ResponseEntity<List<BookmarkedQuizResponseDTO>> getBookmarkedQuizzes(@PathVariable Long noteId) {
+        List<BookmarkedQuizResponseDTO> response = bookmarkService.getBookmarkedQuizzes(noteId);
         return ResponseEntity.ok(response);
     }
 }
