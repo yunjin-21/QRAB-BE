@@ -2,7 +2,9 @@ package QRAB.QRAB.quiz.dto;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import QRAB.QRAB.quiz.domain.Quiz;
+import QRAB.QRAB.quiz.domain.QuizAnswer;
+import QRAB.QRAB.quiz.domain.QuizSet;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

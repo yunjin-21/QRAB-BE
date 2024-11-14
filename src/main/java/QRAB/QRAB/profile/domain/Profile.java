@@ -12,7 +12,7 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor //기본 생성자를 자동 생성
-@Table(name = "Profile")
+@Table(name = "PROFILE")
 public class Profile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -45,4 +45,12 @@ public class Category extends BaseTimeEntity {
         this.user = user;
         this.notes = notes != null ? notes : new ArrayList<>();
     }
+
+    public Category(Long categoryId) {
+        this.id = categoryId;
+    }
+
+    public void setCategoryId(Long categoryId) {
+        this.id = categoryId;
+    }
 }

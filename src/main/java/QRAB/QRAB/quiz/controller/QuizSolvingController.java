@@ -8,6 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/quiz-solving")
 public class QuizSolvingController {
@@ -31,12 +33,14 @@ public class QuizSolvingController {
 
     // 특정 노트 unsolved 퀴즈 세트 조회
     @GetMapping("/{noteId}/unsolved")
-    public ResponseEntity<Page<QuizSetDTO>> getUnsolvedQuizSetsByNoteId(
+    public ResponseEntity<Map<String, Object>> getUnsolvedQuizSets(
             @PathVariable Long noteId,
-            @RequestParam(name = "page", defaultValue = "0") int page) {
-        Page<QuizSetDTO> unsolvedQuizSets = quizService.findUnsolvedQuizSetsByNoteId(noteId, page);
-        return ResponseEntity.ok(unsolvedQuizSets);
+            @RequestParam(defaultValue = "0") int page
+    ) {
+        Map<String, Object> response = quizService.findUnsolvedQuizSetsByNoteId(noteId, page);
+        return ResponseEntity.ok(response);
     }
+
 
     // 퀴즈 풀기 내 퀴즈 조회
     @GetMapping("/{quizSetId}/quizzes")
@@ -48,7 +52,7 @@ public class QuizSolvingController {
     // 퀴즈 채점
     @PostMapping("/{quizSetId}/quizzes/grade")
     public ResponseEntity<QuizGradingResponseDTO> gradeQuizAnswers(
-            @PathVariable Long quizSetId,
+            @PathVariable ("quizSetId")Long quizSetId,
             @RequestBody QuizGradingRequestDTO request) {
         QuizGradingResponseDTO result = quizSolvingService.evaluateQuizSet(quizSetId, request);
         return ResponseEntity.ok(result);

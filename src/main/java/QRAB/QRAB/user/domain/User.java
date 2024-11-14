@@ -5,6 +5,7 @@ import QRAB.QRAB.friend.domain.Friendship;
 import QRAB.QRAB.major.domain.Major;
 import QRAB.QRAB.note.domain.Note;
 import QRAB.QRAB.profile.domain.Profile;
+import QRAB.QRAB.record.domain.Record;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -70,5 +71,7 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Profile profile;
 
+    @OneToMany(mappedBy = "user")
+    private List<Record> records = new ArrayList<>();
 
 }

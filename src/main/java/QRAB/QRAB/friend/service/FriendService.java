@@ -5,10 +5,13 @@ import QRAB.QRAB.category.dto.CategoryChildResponseDTO;
 import QRAB.QRAB.category.dto.CategoryParentResponseDTO;
 import QRAB.QRAB.category.repository.CategoryRepository;
 import QRAB.QRAB.category.service.CategoryService;
+import QRAB.QRAB.email.domain.Email;
+import QRAB.QRAB.email.repository.EmailRepository;
 import QRAB.QRAB.friend.domain.Friendship;
 import QRAB.QRAB.friend.dto.AddFriendNoteRequestDTO;
 import QRAB.QRAB.friend.dto.FriendAddRequestDTO;
 import QRAB.QRAB.friend.dto.FriendResponseDTO;
+import QRAB.QRAB.friend.dto.FriendScoreDTO;
 import QRAB.QRAB.friend.repository.FriendshipRepository;
 import QRAB.QRAB.note.domain.Note;
 import QRAB.QRAB.note.dto.FriendNoteResponseDTO;
@@ -41,8 +44,11 @@ public class FriendService {
     private final CategoryRepository categoryRepository;
     private final CategoryService categoryService;
     private final NoteService noteService;
-
+    private final FriendshipRepository friendshipRepository;
     private final NoteRepository noteRepository;
+
+    private final EmailRepository emailRepository;
+
     @Transactional(readOnly = false)
     public ResponseEntity<?> saveFriend(FriendAddRequestDTO friendAddRequestDTO){
         User user = userRepository.findOneWithAuthoritiesByUsername(friendAddRequestDTO.getEmail())//user 객체
@@ -85,14 +91,18 @@ public class FriendService {
         String currentUserEmail = authentication.getName();
         User user = userRepository.findByUsername(currentUserEmail)
                 .orElseThrow(() -> new NotFoundMemberException("Could not find user with email: " + currentUserEmail));
-
+        Optional<Email> email = emailRepository.findTopByToEmailOrderByCreatedAtDesc(user.getUsername());
         // 프로필 목록을 반환 : 닉네임 전화번호 이미지 전공 // 알림 큐랩 스코어
-        ProfileResponseDTO userProfileResponse = ProfileResponseDTO.fromEntity(user);
+        ProfileResponseDTO userProfileResponse = ProfileResponseDTO.fromEntity(user, email);
+
         Map<String, Object> result = new HashMap<>();
         result.put("nickname", userProfileResponse.getNickname());
         result.put("phoneNumber", userProfileResponse.getPhoneNumber());
         result.put("imgUrl", userProfileResponse.getImgUrl());
         result.put("majorIds", userProfileResponse.getMajorNames());
+        result.put("hour", userProfileResponse.getHour());
+        result.put("minute", userProfileResponse.getMinute());
+        result.put("ampm", userProfileResponse.getAmpm());
 
 
         //친구 목록을 반환
@@ -119,10 +129,10 @@ public class FriendService {
             friendEmail = friendship.getFriend().getUsername();
         }
         // 친구가 생성한 상위 카테고리 조회 - 단 친구의 노트가 0인 경우의 카테고리만 필터링해서 제공
-        List<CategoryParentResponseDTO> parentCategories = categoryService.getFriendParentCategories(friendEmail);
+        List<CategoryParentResponseDTO> parentCategories = categoryService.getUserParentCategories(friendEmail);
 
         // 하위 카테고리 조회
-        List<CategoryChildResponseDTO> childCategories = categoryService.getFriendChildCategories(friendEmail);
+        List<CategoryChildResponseDTO> childCategories = categoryService.getUserChildCategories(friendEmail);
 
         // 노트의 제목, 요약본 (10자), 카테고리 조회
         List<FriendNoteResponseDTO> sixFriendsNotesInfo = noteService.getFriendNotes(friendEmail, page);
@@ -186,4 +196,16 @@ public class FriendService {
         return ResponseEntity.ok(addFriendNoteRequestDTO);
     }
 
+    @Transactional(readOnly = true)
+    public List<FriendScoreDTO> getFriendScores(User user){
+
+        List<Friendship> friendships = friendshipRepository.findByUser(user);
+        String userNickname = user.getNickname();
+
+        // Friendship을 FriendScoreDTO로 변환 (userNickname 추가)
+        List<FriendScoreDTO> friendScoreDTOS = friendships.stream()
+                .map(friendship -> FriendScoreDTO.fromEntity(friendship, userNickname))  // 수정된 부분
+                .collect(Collectors.toList());
+        return friendScoreDTOS;
+    }
 }
