@@ -161,6 +161,7 @@ public class QuizSolvingService {
 
         // 응답 DTO 준비
         QuizGradingResponseDTO response = new QuizGradingResponseDTO();
+        response.setQuizSetId(quizSetId);
         response.setNoteTitle(quizSet.getNote().getTitle());
         response.setScore(score);
         response.setCorrectCount(correctCount);

@@ -181,6 +181,7 @@ public class QuizService {
 
         // QuizGradingResponseDTO 생성
         QuizGradingResponseDTO response = new QuizGradingResponseDTO();
+        response.setQuizSetId(quizSetId); // 입력받은 quizSetId를 그대로 설정
         response.setNoteTitle(quizResult.getQuizSet().getNote().getTitle());
         response.setScore(quizResult.getScore());
         response.setCorrectCount(quizResult.getCorrectCount());
