@@ -41,7 +41,7 @@ public class User {
     private boolean activated;
 
     @Column(name = "notification")
-    private int notification; //알림 설정 기본값 0 -> 비공개
+    private Integer notification; //알림 설정 기본값 0 -> 비공개
 
     @ManyToMany
     @JoinTable(

@@ -14,6 +14,7 @@ import QRAB.QRAB.note.domain.Note;
 import QRAB.QRAB.note.repository.NoteRepository;
 import QRAB.QRAB.user.domain.User;
 import QRAB.QRAB.user.repository.UserRepository;
+import QRAB.QRAB.user.util.SecurityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -335,21 +336,15 @@ public class QuizService {
         return responseDTO;
     }
 
-    // 최근 틀린 퀴즈 2개 조회
+    // 최근 틀린 퀴즈 3개 조회
     public List<RecentWrongQuizDTO> getRecentWrongQuizzes() {
-        List<QuizAnswer> recentWrongAnswers = quizAnswerRepository.findRecentWrongAnswers();
+        String username = SecurityUtil.getCurrentUsername()
+                .orElseThrow(() -> new RuntimeException("No authenticated user found"));
+        User user = userRepository.findOneWithAuthoritiesByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
 
-        return recentWrongAnswers.stream()
-                .limit(3) // 최근 틀린 퀴즈 3개만 반환
-                .map(answer -> new RecentWrongQuizDTO(
-                        answer.getQuiz().getQuizId(),
-                        answer.getQuiz().getQuestion(),
-                        answer.getQuiz().getChoicesAsList(),
-                        answer.getSelectedAnswer(),
-                        answer.getQuiz().getCorrectAnswer(),
-                        answer.isCorrect()
-                ))
-                .collect(Collectors.toList());
+        Pageable pageable = PageRequest.of(0, 3);
+        return quizRepository.findRecentWrongQuizzesByUserId(user.getUserId(), pageable).getContent();
     }
 
 }
