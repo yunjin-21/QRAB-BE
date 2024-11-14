@@ -43,7 +43,7 @@ public class QuizController {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
         // 노트 목록 조회
-        List<QuizLabNoteResponseDTO> storedNotes = noteService.getStoredNotesForQuizLab(username, page);
+        List<QuizLabNoteResponseDTO> storedNotes = noteService.getStoredNotesForQuizLab(page);
         return ResponseEntity.ok(storedNotes);
     }
 
