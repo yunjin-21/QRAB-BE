@@ -368,19 +368,6 @@ public class QuizService {
 
         Pageable pageable = PageRequest.of(0, 3);
         return quizRepository.findRecentWrongQuizzesByUserId(user.getUserId(), pageable).getContent();
-
-        List<QuizAnswer> recentWrongAnswers = quizAnswerRepository.findRecentWrongAnswers();
-        return recentWrongAnswers.stream()
-                .limit(3) // 최근 틀린 퀴즈 3개만 반환
-                .map(answer -> new RecentWrongQuizDTO(
-                        answer.getQuiz().getQuizId(),
-                        answer.getQuiz().getQuestion(),
-                        answer.getQuiz().getChoicesAsList(),
-                        answer.getSelectedAnswer(),
-                        answer.getQuiz().getCorrectAnswer(),
-                        answer.isCorrect()
-                ))
-                .collect(Collectors.toList());
     }
   
     @Transactional(readOnly = true)
@@ -402,7 +389,7 @@ public class QuizService {
             return createQuizSet(generationRequestDTO);
         }
 
-        // "review" 타입인 경우 기존 로직 실행
+        // "review" 타입인 경우 응용 퀴즈 생성
         Note note = noteRepository.findById(request.getNoteId())
                 .orElseThrow(() -> new EntityNotFoundException("Note not found with id: " + request.getNoteId()));
 
