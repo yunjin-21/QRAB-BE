@@ -4,6 +4,7 @@ import QRAB.QRAB.note.domain.Note;
 import QRAB.QRAB.quiz.domain.QuizAnswer;
 import QRAB.QRAB.quiz.domain.QuizResult;
 import QRAB.QRAB.user.domain.User;
+import QRAB.QRAB.category.domain.Category;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -30,11 +31,12 @@ public interface QuizAnswerRepository extends JpaRepository<QuizAnswer, Long> {
     @Query("SELECT qa FROM QuizAnswer qa WHERE qa.quiz.quizId = :quizId AND qa.isCorrect = false")
     Optional<QuizAnswer> findByQuizIdAndIsCorrectFalse(@Param("quizId") Long quizId);
 
-
     // 최근 틀린 퀴즈 조회
     @Query("SELECT qa FROM QuizAnswer qa WHERE qa.isCorrect = false ORDER BY qa.quizSet.createdAt DESC")
     List<QuizAnswer> findRecentWrongAnswers();
 
+    @Query("SELECT qa FROM QuizAnswer qa WHERE qa.quizResult.user = :user AND qa.quiz.quizSet.note.category = :category")
+    List<QuizAnswer> findByUserAndNoteCategory(@Param("user") User user, @Param("category") Category category);
 
 }
 

@@ -1,7 +1,9 @@
 package QRAB.QRAB.chatgpt.service;
 
+import QRAB.QRAB.analysis.dto.DetailedAnalysisResponseDTO;
 import QRAB.QRAB.chatgpt.dto.ChatgptRequestDTO;
 import QRAB.QRAB.chatgpt.dto.ChatgptResponseDTO;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -10,6 +12,7 @@ import QRAB.QRAB.quiz.domain.Quiz;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -120,4 +123,166 @@ public class ChatgptService {
         }
         return quizzes;
     }
+
+    public String getResponse(String prompt) {
+        ChatgptRequestDTO chatgptRequestDTO = new ChatgptRequestDTO(model, prompt);
+        ChatgptResponseDTO chatgptResponseDTO = restTemplate.postForObject(apiUrl, chatgptRequestDTO, ChatgptResponseDTO.class);
+
+        return chatgptResponseDTO != null ? chatgptResponseDTO.getFirstChoiceContent() : "";
+    }
+
+    public String generateDetailedAnalysis(String username, List<String> strongSummaries, List<String> weakSummaries,
+                                           List<String> strongCategoryNames, List<String> weakCategoryNames) {
+        String prompt = String.format(
+                """
+                다음은 %s 님의 강점 카테고리와 약점 카테고리에 대한 퀴즈 풀이 분석입니다:
+        
+                강점 카테고리: %s
+                [강점 카테고리들의 잘 푼 문제들]
+                %s
+
+                약점 카테고리: %s
+                [약점 카테고리들의 틀린 문제들]
+                %s
+                다음과 같은 형식으로 분석해주세요:
+                '%s 님은 %s 카테고리에서 강점을 보이고 있어요. [강점 카테고리에서 잘 푼 내용] 관련 문제에서 정답률이 높네요. 특히, [구체적인 잘 푼 내용 나열]을 잘 이해하고 있어요.
+                
+                반면, %s에서는 어려움을 겪고 있는 것으로 보여요. [약점 카테고리에서 틀린 내용] 관련 문제에서 유달리 정답률이 낮네요. 특히, [구체적인 틀린 내용 나열] 부분에서 낮은 이해도를 보이고 있어요.'
+                
+                example:
+                "sooshu 님은 파이썬과 코딩 카테고리에서 강점을 보이고 있어요.  VSCode와 Jupyter Notebook 파일 변환 관련 문제에서 정답률이 높네요. 특히, Jupyter Notebook 파일을 HTML로 변환하는 방법, nbconvert 패키지 설치 명령어, 파일 변환 시 사용할 수 있는 환경에 대한 내용을 잘 이해하고 있어요.
+                
+                반면, 자바와 컴퓨터네트워크에서는 어려움을 겪고 있는 것으로 보여요. TCP와 UDP 프로토콜, 그리고 커밋 메시지 작성 관련 주제에서 정답률이 낮네요. 특히, TCP와 UDP의 데이터 처리 방식이나 연결 설정 과정에 대한 심화 질문에서 낮은 이해도를 보이고 있는데, 이는 해당 주제에 대한 깊이 있는 지식이 부족함을 시사해요. 또한, 커밋 메시지의 구성 요소나 작성 원칙에 대한 기본적인 이해에서도 틀린 문제들이 많아, 이 부분에 대한 체계적인 학습이 필요해 보여요."
+                
+                주의사항:
+                1. 강점 분석에서는 반드시 강점 카테고리의 내용만 언급하세요.
+                2. 약점 분석에서는 반드시 약점 카테고리의 내용만 언급하세요.
+                3. 분석은 구체적이고 명확하게 해주시고, 실제 문제 풀이 내용을 근거로 들어 설명해주세요.
+                4. 특수문자나 마크다운 문법(-, *, `, #)은 사용하지 말고 순수 텍스트로만 작성해주세요.
+                """,
+                username,
+                String.join("과 ", strongCategoryNames),
+                String.join("\n", strongSummaries),
+                String.join("과 ", weakCategoryNames),
+                String.join("\n", weakSummaries),
+                username,
+                String.join("과 ", strongCategoryNames),
+                String.join("과 ", weakCategoryNames)
+        );
+
+        ChatgptRequestDTO chatgptRequestDTO = new ChatgptRequestDTO(model, prompt);
+        ChatgptResponseDTO chatgptResponseDTO = restTemplate.postForObject(apiUrl, chatgptRequestDTO, ChatgptResponseDTO.class);
+
+        return chatgptResponseDTO != null ? chatgptResponseDTO.getFirstChoiceContent() : "";
+    }
+
+    public List<String> generateStudyTips(String categoryName, List<String> weakSummaries) {
+        String prompt = String.format(
+                """
+                다음은 사용자가 %s 카테고리에서 틀린 문제들의 특징입니다:
+                %s
+        
+                위 내용을 바탕으로, 이 카테고리의 실력 향상을 위한 구체적인 학습 방법 2-3개를 추천해주세요.
+                각 방법은 다음과 같은 형식으로 작성해주세요:
+                - [학습 내용]을 먼저 공부하세요. [학습 내용]은 [설명]입니다.
+                - [구체적인 개념]을 복습하세요. [구체적인 개념]은 [설명]입니다.
+                
+                example:
+                - TCP와 UDP의 기본 개념을 먼저 공부하세요. TCP는 연결 지향적이며 데이터 전송의 신뢰성을 보장하는 프로토콜입니다. UDP는 비연결 지향적이며 속도를 중시하는 프로토콜로, 데이터 전송의 신뢰성을 보장하지 않습니다.
+                - 스택의 기본 개념인 LIFO 구조를 복습하세요. LIFO는 Last In First Out의 약자로, 가장 나중에 들어온 데이터가 가장 먼저 나가는 구조입니다. 스택의 pop(), push() 메소드와 같은 기본적인 작동 방식을 이해하는 것이 중요합니다.
+                - 커밋 메시지의 기본 구성 요소를 공부하세요. 커밋 메시지는 제목, 본문, 꼬리말로 구성되며, 이를 통해 코드 변경 사항을 명확하게 설명하고 팀원들과의 소통을 원활하게 할 수 있습니다. 각 요소의 역할과 작성 원칙을 숙지하는 것이 좋습니다.
+                
+                주의사항:
+                1. 학습 방법은 구체적이고 실천 가능한 내용으로 작성해주세요.
+                2. 특수문자나 마크다운 문법(-, *, `, #)은 사용하지 말고 순수 텍스트로만 작성해주세요.
+                3. JSON이나 특수문자 없이 순수 텍스트로만 작성해주세요.
+                4. 각 팁은 새로운 줄에 작성하고 앞에 하이픈(-)을 붙여주세요.
+                """,
+                categoryName,
+                String.join("\n", weakSummaries)
+        );
+
+        ChatgptRequestDTO chatgptRequestDTO = new ChatgptRequestDTO(model, prompt);
+        ChatgptResponseDTO chatgptResponseDTO = restTemplate.postForObject(apiUrl, chatgptRequestDTO, ChatgptResponseDTO.class);
+
+        String response = chatgptResponseDTO != null ? chatgptResponseDTO.getFirstChoiceContent() : "";
+        return Arrays.asList(response.split("\n")).stream()
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+    }
+
+    public List<DetailedAnalysisResponseDTO.ReferenceDTO> generateReferences(String categoryName, String content) {
+        String prompt = String.format(
+                """
+                %s 분야의 %s 주제에 대해 추가 학습할 수 있도록 한국인 대학생에게 자료를 추천해주세요.
+                먼저 온라인 학습이 가능한 링크 2개, 그 다음 관련 도서 링크 2개를 추천해주세요.
+                다음과 같은 JSON 형식으로 작성해주세요:
+                {
+                  "references": [
+                    {
+                      "title": "문서/블로그/강좌/자료 제목",
+                      "link": "URL"
+                    }
+                  ]
+                }
+                
+                주의사항:
+                1. 반드시 현재 접속 가능한 실제 웹사이트의 링크여야 합니다. 임의로 링크를 생성하지 마세요.
+                2. 특수문자나 마크다운 문법(-, *, `, #)은 사용하지 말고 순수 텍스트로만 작성해주세요.
+                """,
+                categoryName,
+                content
+        );
+
+        ChatgptRequestDTO chatgptRequestDTO = new ChatgptRequestDTO(model, prompt);
+        ChatgptResponseDTO chatgptResponseDTO = restTemplate.postForObject(apiUrl, chatgptRequestDTO, ChatgptResponseDTO.class);
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(chatgptResponseDTO.getFirstChoiceContent());
+            List<DetailedAnalysisResponseDTO.ReferenceDTO> references = new ArrayList<>();
+
+            if (root.has("references")) {
+                root.get("references").forEach(reference -> {
+                    DetailedAnalysisResponseDTO.ReferenceDTO dto = new DetailedAnalysisResponseDTO.ReferenceDTO();
+                    dto.setTitle(reference.get("title").asText());
+                    dto.setLink(reference.get("link").asText());
+                    references.add(dto);
+                });
+            }
+
+            return references;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse references", e);
+        }
+    }
+    /*public List<DetailedAnalysisResponseDTO.ReferenceDTO> generateReferences(String categoryName, String content) {
+        List<DetailedAnalysisResponseDTO.ReferenceDTO> references = new ArrayList<>();
+
+        // 온라인 강좌 2개
+        DetailedAnalysisResponseDTO.ReferenceDTO ref1 = new DetailedAnalysisResponseDTO.ReferenceDTO();
+        ref1.setTitle("인프런 - " + categoryName + " 기초 강좌");
+        ref1.setLink("https://www.inflearn.com/courses/" + categoryName.toLowerCase());
+        references.add(ref1);
+
+        DetailedAnalysisResponseDTO.ReferenceDTO ref2 = new DetailedAnalysisResponseDTO.ReferenceDTO();
+        ref2.setTitle("YouTube - " + categoryName + " 학습 채널");
+        ref2.setLink("https://www.youtube.com/results?search_query=" + categoryName.toLowerCase());
+        references.add(ref2);
+
+        // 도서 2개
+        DetailedAnalysisResponseDTO.ReferenceDTO ref3 = new DetailedAnalysisResponseDTO.ReferenceDTO();
+        ref3.setTitle(categoryName + " 기초 개념서");
+        ref3.setLink("https://www.yes24.com/Product/Search?domain=ALL&query=" + categoryName);
+        references.add(ref3);
+
+        DetailedAnalysisResponseDTO.ReferenceDTO ref4 = new DetailedAnalysisResponseDTO.ReferenceDTO();
+        ref4.setTitle(categoryName + " 심화 학습서");
+        ref4.setLink("https://www.aladin.co.kr/search/wsearchresult.aspx?SearchWord=" + categoryName);
+        references.add(ref4);
+
+        return references;
+    }*/
+
 }

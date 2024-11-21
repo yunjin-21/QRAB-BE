@@ -1,19 +1,17 @@
 package QRAB.QRAB.analysis.controller;
 
-import QRAB.QRAB.analysis.dto.CategoryAnalysisResponseDTO;
-import QRAB.QRAB.analysis.dto.MonthlyAnalysisResponseDTO;
-import QRAB.QRAB.analysis.dto.MonthlySummaryResponseDTO;
-import QRAB.QRAB.analysis.dto.WeakCategoryResponseDTO;
+import QRAB.QRAB.analysis.domain.DetailedAnalysis;
+import QRAB.QRAB.analysis.dto.*;
 import QRAB.QRAB.analysis.service.AnalysisService;
 import QRAB.QRAB.analysis.service.CategoryAnalysisService;
 import QRAB.QRAB.analysis.service.DailyAnalysisService;
+import QRAB.QRAB.analysis.service.DetailedAnalysisService;
+import QRAB.QRAB.user.util.SecurityUtil;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/analysis")
@@ -22,12 +20,14 @@ public class AnalysisController {
     private final AnalysisService analysisService;
     private final DailyAnalysisService dailyAnalysisService;
     private final CategoryAnalysisService categoryAnalysisService;
+    private final DetailedAnalysisService detailedAnalysisService;
 
     public AnalysisController(AnalysisService analysisService, DailyAnalysisService dailyAnalysisService,
-                              CategoryAnalysisService categoryAnalysisService) {
+                              CategoryAnalysisService categoryAnalysisService, DetailedAnalysisService detailedAnalysisService) {
         this.analysisService = analysisService;
         this.dailyAnalysisService = dailyAnalysisService;
         this.categoryAnalysisService = categoryAnalysisService;
+        this.detailedAnalysisService = detailedAnalysisService;
     }
 
     // 이번 달 통계 조회
@@ -62,6 +62,26 @@ public class AnalysisController {
     public ResponseEntity<WeakCategoryResponseDTO> getWeakCategoryAnalysis() {
         WeakCategoryResponseDTO response = categoryAnalysisService.getWeakCategoryAnalysis();
         System.out.println(response);
+        return ResponseEntity.ok(response);
+    }
+
+    // 상세 분석 수동 생성
+    @PostMapping("/detailed-analysis")
+    public ResponseEntity<DetailedAnalysisResponseDTO> createDetailedAnalysis() {
+        String username = SecurityUtil.getCurrentUsername()
+                .orElseThrow(() -> new RuntimeException("No authenticated user found"));
+
+        DetailedAnalysisResponseDTO response = detailedAnalysisService.getDetailedAnalysis(username);
+        return ResponseEntity.ok(response);
+    }
+
+    // 상세 분석 조회
+    @GetMapping("/detailed-analysis/latest")
+    public ResponseEntity<DetailedAnalysisResponseDTO> getLatestDetailedAnalysis() {
+        String username = SecurityUtil.getCurrentUsername()
+                .orElseThrow(() -> new RuntimeException("No authenticated user found"));
+
+        DetailedAnalysisResponseDTO response = detailedAnalysisService.getLatestDetailedAnalysis(username);
         return ResponseEntity.ok(response);
     }
 }
