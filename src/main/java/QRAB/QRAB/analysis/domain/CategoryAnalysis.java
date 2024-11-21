@@ -14,21 +14,20 @@ public class CategoryAnalysis {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long categoryAnalysisId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
     @Column(nullable = false, length = 7)
     private String month; // YYYY-MM 형식
 
-    @Column(nullable = false)
     private int solvedQuizCount;
 
-    @Column(nullable = false)
     private float categoryAccuracy;
+
 }
 
