@@ -74,12 +74,14 @@ public class QuizSolvingService {
         QuizSet quizSet = quizSetRepository.findById(quizSetId)
                 .orElseThrow(() -> new RuntimeException("Quiz Set not found"));
 
+        // 전체 문제 수와 맞은 문제 수 계산
+        int totalQuizCount = request.getAnswers().size();
         int correctCount = 0;
         List<QuizGradingResponseDTO.QuizResultDetailDTO> quizResults = new ArrayList<>();
-        LocalDate currentDate = LocalDate.now(); // 현재 날짜 가져오기
+        LocalDate currentDate = LocalDate.now();
         String month = currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM"));
 
-        // 퀴즈 채점 로직
+        // 퀴즈 채점 및 상세 결과 생성
         for (QuizGradingRequestDTO.AnswerDTO answer : request.getAnswers()) {
             Quiz quiz = quizRepository.findById(answer.getQuizId())
                     .orElseThrow(() -> new RuntimeException("Quiz not found"));
@@ -88,28 +90,6 @@ public class QuizSolvingService {
             if (isCorrect) {
                 correctCount++;
             }
-
-            // DailyAnalysis 업데이트
-            dailyAnalysisService.updateDailyAnalysis(
-                    currentDate,
-                    1, // 푼 퀴즈 문제 수
-                    isCorrect ? 1.0f : 0.0f // 정답률
-            );
-
-            // MonthlyAnalysis 업데이트
-            monthlyAnalysisService.updateMonthlyAnalysis(
-                    currentDate // 현재 날짜
-            );
-
-            // 카테고리별 통계 업데이트
-            Category category = quiz.getQuizSet().getNote().getCategory();
-            categoryAnalysisService.updateCategoryAnalysis(
-                    category.getId(),
-                    month,
-                    1,
-                    isCorrect ? 1.0f : 0.0f
-            );
-
 
             // 응답 DTO에 상세 정보 추가
             QuizGradingResponseDTO.QuizResultDetailDTO detail = new QuizGradingResponseDTO.QuizResultDetailDTO();
@@ -124,10 +104,26 @@ public class QuizSolvingService {
             quizResults.add(detail);
         }
 
-        // 총 질문 수와 점수 계산
-        int totalQuestions = request.getAnswers().size();
-        int score = (int) ((double) correctCount / totalQuestions * 100);
-        float accuracyRate = (float) correctCount / totalQuestions;
+        // 점수와 정답률 계산
+        float accuracyRate = (float) correctCount / totalQuizCount;
+        int score = (int) (accuracyRate * 100);
+
+        // 분석 데이터 업데이트
+        dailyAnalysisService.updateDailyAnalysis(
+                currentDate,
+                totalQuizCount,
+                accuracyRate
+        );
+
+        monthlyAnalysisService.updateMonthlyAnalysis(currentDate);
+
+        Category category = quizSet.getNote().getCategory();
+        categoryAnalysisService.updateCategoryAnalysis(
+                category.getId(),
+                month,
+                totalQuizCount,
+                accuracyRate
+        );
 
         // QuizResult 엔티티 저장
         QuizResult quizResult = new QuizResult();
@@ -135,7 +131,7 @@ public class QuizSolvingService {
         quizResult.setUser(quizSet.getUser());
         quizResult.setScore(score);
         quizResult.setCorrectCount(correctCount);
-        quizResult.setTotalQuestions(totalQuestions);
+        quizResult.setTotalQuestions(totalQuizCount);
         quizResult.setTakenAt(LocalDateTime.now());
         quizResultRepository.save(quizResult);
 
@@ -144,14 +140,14 @@ public class QuizSolvingService {
         quizSet.setAccuracyRate(accuracyRate);
         quizSetRepository.save(quizSet);
 
-        // 각 QuizAnswer에 quizResult 설정 후 저장
+        // QuizAnswer 저장
         for (QuizGradingRequestDTO.AnswerDTO answer : request.getAnswers()) {
             Quiz quiz = quizRepository.findById(answer.getQuizId())
                     .orElseThrow(() -> new RuntimeException("Quiz not found"));
             boolean isCorrect = (quiz.getCorrectAnswer() == answer.getSelectedAnswer());
 
             QuizAnswer quizAnswer = new QuizAnswer();
-            quizAnswer.setQuizResult(quizResult); // QuizResult 설정
+            quizAnswer.setQuizResult(quizResult);
             quizAnswer.setQuiz(quiz);
             quizAnswer.setQuizSet(quiz.getQuizSet());
             quizAnswer.setSelectedAnswer(answer.getSelectedAnswer());
@@ -159,18 +155,16 @@ public class QuizSolvingService {
             quizAnswerRepository.save(quizAnswer);
         }
 
-        // 응답 DTO 준비
+        // 응답 DTO 생성
         QuizGradingResponseDTO response = new QuizGradingResponseDTO();
         response.setQuizSetId(quizSetId);
         response.setNoteTitle(quizSet.getNote().getTitle());
         response.setScore(score);
         response.setCorrectCount(correctCount);
-        response.setTotalQuestions(totalQuestions);
+        response.setTotalQuestions(totalQuizCount);
         response.setTakenAt(LocalDateTime.now());
         response.setQuizzes(quizResults);
 
         return response;
     }
-
-
 }

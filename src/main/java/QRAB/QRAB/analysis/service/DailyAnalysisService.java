@@ -33,11 +33,13 @@ public class DailyAnalysisService {
         DailyAnalysis dailyAnalysis = dailyAnalysisRepository.findByUserAndDate(user, date)
                 .orElseGet(() -> new DailyAnalysis(user, date, 0, 0.0f));
 
-        dailyAnalysis.setSolvedQuizCount(dailyAnalysis.getSolvedQuizCount() + solvedQuizCount);
+        // 기존 데이터와 새로운 데이터를 합산해 평균 계산
+        int newTotalCount = dailyAnalysis.getSolvedQuizCount() + solvedQuizCount;
+        float weightedAccuracy = (dailyAnalysis.getAverageAccuracy() * dailyAnalysis.getSolvedQuizCount()
+                + accuracy * solvedQuizCount) / newTotalCount;
 
-        float totalAccuracy = (dailyAnalysis.getAverageAccuracy() * dailyAnalysis.getSolvedQuizCount())
-                + (accuracy * solvedQuizCount);
-        dailyAnalysis.setAverageAccuracy(totalAccuracy / (dailyAnalysis.getSolvedQuizCount() + solvedQuizCount));
+        dailyAnalysis.setSolvedQuizCount(newTotalCount);
+        dailyAnalysis.setAverageAccuracy(weightedAccuracy);
 
         dailyAnalysisRepository.save(dailyAnalysis);
     }
