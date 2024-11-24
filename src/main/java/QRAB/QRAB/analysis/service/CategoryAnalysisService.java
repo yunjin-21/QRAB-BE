@@ -127,12 +127,16 @@ public class CategoryAnalysisService {
         User user = userRepository.findOneWithAuthoritiesByUsername(username)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + username));
 
-        // 가장 낮은 정답률 카테고리
-        CategoryAnalysis lowestAccuracyCategory = categoryAnalysisRepository.findByUser(user).stream()
-                .min(Comparator.comparing(CategoryAnalysis::getCategoryAccuracy))
-                .orElseThrow(() -> new RuntimeException("카테고리 분석 데이터가 없습니다."));
+        // 1. 카테고리별 평균 정답률을 계산해서 가장 낮은 정답률을 가진 카테고리 찾기
+        List<CategoryAnalysis> analyses = categoryAnalysisRepository.findByUserOrderByCategoryAccuracyDesc(user);
 
-        // 퀴즈세트 생성 횟수 조회
+        if (analyses.isEmpty()) {
+            throw new RuntimeException("카테고리 분석 데이터가 없습니다.");
+        }
+
+        CategoryAnalysis lowestAccuracyCategory = analyses.get(analyses.size() - 1);
+
+        // 2. 모든 카테고리의 퀴즈세트 생성 횟수 조회
         List<CategoryQuizGenerationDTO> quizGenerationList = noteRepository.findQuizGenerationCountPerCategory(user);
 
         return new WeakCategoryResponseDTO(
