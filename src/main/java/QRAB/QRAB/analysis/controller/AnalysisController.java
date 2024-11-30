@@ -6,6 +6,7 @@ import QRAB.QRAB.analysis.service.AnalysisService;
 import QRAB.QRAB.analysis.service.CategoryAnalysisService;
 import QRAB.QRAB.analysis.service.DailyAnalysisService;
 import QRAB.QRAB.analysis.service.DetailedAnalysisService;
+import QRAB.QRAB.chatgpt.service.ChatgptService;
 import QRAB.QRAB.user.util.SecurityUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,13 +22,16 @@ public class AnalysisController {
     private final DailyAnalysisService dailyAnalysisService;
     private final CategoryAnalysisService categoryAnalysisService;
     private final DetailedAnalysisService detailedAnalysisService;
+    private final ChatgptService chatgptService;
 
     public AnalysisController(AnalysisService analysisService, DailyAnalysisService dailyAnalysisService,
-                              CategoryAnalysisService categoryAnalysisService, DetailedAnalysisService detailedAnalysisService) {
+                              CategoryAnalysisService categoryAnalysisService, DetailedAnalysisService detailedAnalysisService,
+                              ChatgptService chatgptService) {
         this.analysisService = analysisService;
         this.dailyAnalysisService = dailyAnalysisService;
         this.categoryAnalysisService = categoryAnalysisService;
         this.detailedAnalysisService = detailedAnalysisService;
+        this.chatgptService = chatgptService;
     }
 
     // 이번 달 통계 조회
@@ -83,6 +87,14 @@ public class AnalysisController {
 
         DetailedAnalysisResponseDTO response = detailedAnalysisService.getLatestDetailedAnalysis(username);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/test-rag")
+    public List<DetailedAnalysisResponseDTO.ReferenceDTO> testRAG() {
+        return chatgptService.generateReferences(
+                "Data Structures",
+                "How to implement a linked list in Java"
+        );
     }
 }
 

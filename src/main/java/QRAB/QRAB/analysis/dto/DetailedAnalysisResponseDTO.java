@@ -27,5 +27,6 @@ public class DetailedAnalysisResponseDTO {
     public static class ReferenceDTO {
         private String title;
         private String link;
+        private String content;
     }
 }
