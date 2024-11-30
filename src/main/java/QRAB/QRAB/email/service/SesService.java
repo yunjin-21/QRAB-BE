@@ -63,26 +63,36 @@ public class SesService {
         // 예약 시간 설정
         LocalDateTime scheduledTime = LocalDateTime.of(now.getYear(), now.getMonth(), now.getDayOfMonth(),
                 hour, minute, 0, 0);
+         //9시간 추가로 시간대 보정
+        //LocalDateTime scheduledTime = LocalDateTime.of(now.getYear(), now.getMonth(), now.getDayOfMonth(), hour, minute)
+          //      .plusHours(9);
         // 예약 시간이 현재 시간보다 과거인 경우 다음 날로 설정
         if (scheduledTime.isBefore(now)) {
             scheduledTime = scheduledTime.plusDays(1);
         }
         System.out.println(hour + " " + minute + " Scheduling email for: " + sesRequestDTO.getTo() + " at " + scheduledTime);
 
+        // LocalDateTime을 ZonedDateTime으로 변환 후 Instant로 변환
+        ZonedDateTime zonedDateTime = scheduledTime.atZone(ZoneId.of("Asia/Seoul"));// KST로 변환
+        Instant instant = zonedDateTime.toInstant();
+        System.out.println("예약된 시간 (KST): " + zonedDateTime);
+        System.out.println("예약된 시간 (Instant): " + instant);
+        System.out.println("서버의 시간대: " + ZoneId.systemDefault());
+        System.out.println("현재 시간 (KST): " + ZonedDateTime.now(ZoneId.of("Asia/Seoul")));
+
+        System.out.println("Scheduled email for: " + sesRequestDTO.getTo() + " at " + zonedDateTime);
         // Email 엔티티 생성 후 저장
         Email email = Email.builder()
                 .toEmail(sesRequestDTO.getTo())
                 .hour(sesRequestDTO.getHour())
                 .minute(sesRequestDTO.getMinute())
                 .ampm(sesRequestDTO.getAmpm())
-                .scheduledTime(scheduledTime)
+                .scheduledTime(zonedDateTime)
                 .build();
 
         emailRepository.save(email);
-        // LocalDateTime을 ZonedDateTime으로 변환 후 Instant로 변환
-        ZonedDateTime zonedDateTime = scheduledTime.atZone(ZoneId.systemDefault());
-        Instant instant = zonedDateTime.toInstant();
 
+        //System.out.println(zonedDateTime);
         // 예약된 시간에 이메일 발송
         taskScheduler.schedule(() -> sendEmail(sesRequestDTO), instant);
     }

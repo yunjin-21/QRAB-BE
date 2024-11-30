@@ -4,13 +4,11 @@ import QRAB.QRAB.friend.domain.Friendship;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.List;
+
 @Getter
 @AllArgsConstructor
-public class FriendScoreDTO {
-    private String friendNickname;
-    private String userNickname;  // 추가된 필드
+public class FriendScoreDTO { //사용 x
+    private List<String> nickname;
 
-    public static FriendScoreDTO fromEntity(Friendship friendship,String userNickname){
-        return new FriendScoreDTO(friendship.getFriend().getNickname(), userNickname);
-    }
 }

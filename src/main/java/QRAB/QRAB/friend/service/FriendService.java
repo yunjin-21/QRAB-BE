@@ -1,5 +1,7 @@
 package QRAB.QRAB.friend.service;
 
+import QRAB.QRAB.analysis.domain.MonthlyAnalysis;
+import QRAB.QRAB.analysis.repository.MonthlyAnalysisRepository;
 import QRAB.QRAB.category.domain.Category;
 import QRAB.QRAB.category.dto.CategoryChildResponseDTO;
 import QRAB.QRAB.category.dto.CategoryParentResponseDTO;
@@ -24,6 +26,7 @@ import QRAB.QRAB.profile.repository.ProfileRepository;
 import QRAB.QRAB.user.domain.User;
 import QRAB.QRAB.user.excepiton.NotFoundMemberException;
 import QRAB.QRAB.user.repository.UserRepository;
+import QRAB.QRAB.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -48,6 +51,10 @@ public class FriendService {
     private final NoteRepository noteRepository;
 
     private final EmailRepository emailRepository;
+
+    private final UserService userService;
+
+    private final MonthlyAnalysisRepository monthlyAnalysisRepository;
 
     @Transactional(readOnly = false)
     public ResponseEntity<?> saveFriend(FriendAddRequestDTO friendAddRequestDTO){
@@ -197,15 +204,40 @@ public class FriendService {
     }
 
     @Transactional(readOnly = true)
-    public List<FriendScoreDTO> getFriendScores(User user){
-
+    public List<String> getFriendScores(User user){
+        //연속 학습 일수 + 정답률 기반 순위 조회
         List<Friendship> friendships = friendshipRepository.findByUser(user);
         String userNickname = user.getNickname();
+        List<String> allNames = new ArrayList<>();
+        allNames.add(userNickname);
+        for(Friendship friendship : friendships){
+            allNames.add(friendship.getFriendNickname());
+        }
+        Map<String, Float> hm = new HashMap<>();
+        for(String nickName : allNames){
+            User u = userRepository.findByNickname(nickName)
+                    .orElseThrow(() -> new RuntimeException("Could not find user with email"));
+            int totalLearningDays = userService.getTotalLearningDays(u);//해당 닉네임의 연속 학습 일
+            List<MonthlyAnalysis> monthlyAnalysisList = monthlyAnalysisRepository.findAllByUser(user);// 해당 닉네임의 정답률
+            float averageAccuracy = 0.0f;
+            if(!monthlyAnalysisList.isEmpty()){
+                averageAccuracy = (float) monthlyAnalysisList.stream()
+                        .mapToDouble(MonthlyAnalysis::getAverageAccuracy)
+                        .average()
+                        .orElse(0.0);
+            }
+            float score = totalLearningDays + 100 * averageAccuracy;
+            hm.put(nickName, score);
+        }
+        //리스트로 변환
+        List<Map.Entry<String, Float>> entries = new ArrayList<>(hm.entrySet());
+        //스코어 기준 내림 차순 정렬
+        Collections.sort(entries, (a, b) -> b.getValue().compareTo(a.getValue()));
 
-        // Friendship을 FriendScoreDTO로 변환 (userNickname 추가)
-        List<FriendScoreDTO> friendScoreDTOS = friendships.stream()
-                .map(friendship -> FriendScoreDTO.fromEntity(friendship, userNickname))  // 수정된 부분
-                .collect(Collectors.toList());
-        return friendScoreDTOS;
+        List<String> answer = new ArrayList<>();
+        for(Map.Entry<String, Float> entry : entries){
+            answer.add(entry.getKey());
+        }
+        return answer;
     }
 }

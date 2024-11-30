@@ -374,7 +374,8 @@ public class QuizService {
     public List<UnsolvedRecentQuizSetDTO> getRecentUnsolvedQuizSets(String username){
         User user = userRepository.findOneWithAuthoritiesByUsername(username)
                 .orElseThrow(()-> new RuntimeException("Could not find user with email"));
-        List<QuizSet> quizSets = quizSetRepository.findByUserOrderByCreatedAtDesc(user);
+        // 안 푼 퀴즈 세트 중 최근 생성된 순서로 가져오기
+        List<QuizSet> quizSets = quizSetRepository.findByUserAndStatusOrderByCreatedAtDesc(user, "unsolved");
         List<UnsolvedRecentQuizSetDTO> unsolvedRecentQuizSetDTOS = quizSets.stream()
                 .limit(3).map(UnsolvedRecentQuizSetDTO::fromEntity).toList();
         return unsolvedRecentQuizSetDTOS;
