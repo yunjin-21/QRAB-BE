@@ -48,11 +48,11 @@ public class HomeController {
         int totalLearningDays = userService.getTotalLearningDays(user);//이번달 총 학습일수
         int constellations = totalLearningDays / 3; //별자리개수
         List<RecentWrongQuizDTO> recentWrongQuizzes = quizService.getRecentWrongQuizzes(); // 틀린 퀴즈 조회
+
         List<UnsolvedRecentQuizSetDTO> unsolvedQuizSetResponseDTOS = quizService.getRecentUnsolvedQuizSets(username); //안푼 퀴즈 세트의 노트 최근 3개 조회
 
-        //친구
+        List<String> scoreNicknames  = friendService.getFriendScores(user); //친구 순위
 
-        List<FriendScoreDTO> friendScoreDTOS = friendService.getFriendScores(user);
         Map<String, Object> result = new HashMap<>();
         result.put("threeNoteInfo", threeNoteInfo);
         result.put("consecutiveLearningDays", consecutiveLearningDays);
@@ -60,7 +60,7 @@ public class HomeController {
         result.put("constellations", constellations);
         result.put("recentWrongQuizzes", recentWrongQuizzes);
         result.put("unsolvedQuizSetResponseDTOS", unsolvedQuizSetResponseDTOS);
-        result.put("friendScoreDTOS", friendScoreDTOS);
+        result.put("scoreNicknames", scoreNicknames);
 
         return ResponseEntity.ok(result);
     }

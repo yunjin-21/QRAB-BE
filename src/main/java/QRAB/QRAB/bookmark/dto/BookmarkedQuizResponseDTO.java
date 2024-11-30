@@ -1,34 +1,30 @@
-package QRAB.QRAB.quiz.dto;
+package QRAB.QRAB.bookmark.dto;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import QRAB.QRAB.quiz.domain.Quiz;
-import QRAB.QRAB.quiz.domain.QuizAnswer;
-import QRAB.QRAB.quiz.domain.QuizSet;
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
-@Setter
-@NoArgsConstructor
-public class RecentWrongQuizDTO {
+public class BookmarkedQuizResponseDTO {
     private Long quizId;
+    private Long quizSetId;
     private String question;
     private List<String> choices;
-    private int selectedAnswer;
+    private int userAnswer;
     private int correctAnswer;
     private LocalDateTime solvedAt;
 
-    public RecentWrongQuizDTO(Long quizId, String question, String choicesJson,
-                              int selectedAnswer, int correctAnswer, LocalDateTime solvedAt) {
+    public BookmarkedQuizResponseDTO(Long quizId, Long quizSetId, String question, String choicesJson,
+                                     int userAnswer, int correctAnswer, LocalDateTime solvedAt) {
         this.quizId = quizId;
+        this.quizSetId = quizSetId;
         this.question = question;
-        this.choices = parseChoices(choicesJson);
-        this.selectedAnswer = selectedAnswer;
+        this.choices = parseChoices(choicesJson); // JSON 문자열을 파싱
+        this.userAnswer = userAnswer;
         this.correctAnswer = correctAnswer;
         this.solvedAt = solvedAt;
     }

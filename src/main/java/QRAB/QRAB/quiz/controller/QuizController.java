@@ -9,6 +9,7 @@ import QRAB.QRAB.quiz.service.QuizService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -42,7 +43,7 @@ public class QuizController {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
         // 노트 목록 조회
-        List<QuizLabNoteResponseDTO> storedNotes = noteService.getStoredNotesForQuizLab(username, page);
+        List<QuizLabNoteResponseDTO> storedNotes = noteService.getStoredNotesForQuizLab(page);
         return ResponseEntity.ok(storedNotes);
     }
 
@@ -89,6 +90,7 @@ public class QuizController {
     public ResponseEntity<QuizGradingResponseDTO> gradeReviewWrongQuiz(
             @PathVariable Long quizSetId,
             @RequestBody QuizGradingRequestDTO requestDTO) {
+
         QuizGradingResponseDTO response = quizService.gradeReviewWrongQuiz(quizSetId, requestDTO);
         return ResponseEntity.ok(response);
     }
@@ -96,6 +98,8 @@ public class QuizController {
     // 최근 틀린 퀴즈 조회 엔드포인트
     @GetMapping("/recent-wrong")
     public ResponseEntity<List<RecentWrongQuizDTO>> getRecentWrongQuizzes() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
         List<RecentWrongQuizDTO> recentWrongQuizzes = quizService.getRecentWrongQuizzes();
         return ResponseEntity.ok(recentWrongQuizzes);
     }

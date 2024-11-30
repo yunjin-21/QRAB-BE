@@ -15,6 +15,7 @@ import QRAB.QRAB.note.domain.Note;
 import QRAB.QRAB.note.repository.NoteRepository;
 import QRAB.QRAB.user.domain.User;
 import QRAB.QRAB.user.repository.UserRepository;
+import QRAB.QRAB.user.util.SecurityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -180,6 +181,7 @@ public class QuizService {
 
         // QuizGradingResponseDTO 생성
         QuizGradingResponseDTO response = new QuizGradingResponseDTO();
+        response.setQuizSetId(quizSetId); // 입력받은 quizSetId를 그대로 설정
         response.setNoteTitle(quizResult.getQuizSet().getNote().getTitle());
         response.setScore(quizResult.getScore());
         response.setCorrectCount(quizResult.getCorrectCount());
@@ -357,27 +359,23 @@ public class QuizService {
         return responseDTO;
     }
 
-    // 최근 틀린 퀴즈 2개 조회
+    // 최근 틀린 퀴즈 3개 조회
     public List<RecentWrongQuizDTO> getRecentWrongQuizzes() {
-        List<QuizAnswer> recentWrongAnswers = quizAnswerRepository.findRecentWrongAnswers();
+        String username = SecurityUtil.getCurrentUsername()
+                .orElseThrow(() -> new RuntimeException("No authenticated user found"));
+        User user = userRepository.findOneWithAuthoritiesByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
 
-        return recentWrongAnswers.stream()
-                .limit(3) // 최근 틀린 퀴즈 3개만 반환
-                .map(answer -> new RecentWrongQuizDTO(
-                        answer.getQuiz().getQuizId(),
-                        answer.getQuiz().getQuestion(),
-                        answer.getQuiz().getChoicesAsList(),
-                        answer.getSelectedAnswer(),
-                        answer.getQuiz().getCorrectAnswer(),
-                        answer.isCorrect()
-                ))
-                .collect(Collectors.toList());
+        Pageable pageable = PageRequest.of(0, 3);
+        return quizRepository.findRecentWrongQuizzesByUserId(user.getUserId(), pageable).getContent();
     }
+  
     @Transactional(readOnly = true)
     public List<UnsolvedRecentQuizSetDTO> getRecentUnsolvedQuizSets(String username){
         User user = userRepository.findOneWithAuthoritiesByUsername(username)
                 .orElseThrow(()-> new RuntimeException("Could not find user with email"));
-        List<QuizSet> quizSets = quizSetRepository.findByUserOrderByCreatedAtDesc(user);
+        // 안 푼 퀴즈 세트 중 최근 생성된 순서로 가져오기
+        List<QuizSet> quizSets = quizSetRepository.findByUserAndStatusOrderByCreatedAtDesc(user, "unsolved");
         List<UnsolvedRecentQuizSetDTO> unsolvedRecentQuizSetDTOS = quizSets.stream()
                 .limit(3).map(UnsolvedRecentQuizSetDTO::fromEntity).toList();
         return unsolvedRecentQuizSetDTOS;
@@ -392,7 +390,7 @@ public class QuizService {
             return createQuizSet(generationRequestDTO);
         }
 
-        // "review" 타입인 경우 기존 로직 실행
+        // "review" 타입인 경우 응용 퀴즈 생성
         Note note = noteRepository.findById(request.getNoteId())
                 .orElseThrow(() -> new EntityNotFoundException("Note not found with id: " + request.getNoteId()));
 
