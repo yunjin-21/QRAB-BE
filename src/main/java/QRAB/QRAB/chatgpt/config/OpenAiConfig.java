@@ -14,14 +14,12 @@ public class OpenAiConfig {
     private String openAiKey;
     //RestTemplate 을 빈으로 등록 Authorization 헤더에 API 키를 설정
     @Bean
-    public RestTemplate template(RestTemplateBuilder builder){
-        return builder
-                .additionalInterceptors((request, body, execution) -> {
-                    request.getHeaders().add("Authorization", "Bearer " + openAiKey);
-                    return execution.execute(request, body);
-                })
-                .setConnectTimeout(Duration.ofMillis(5000)) // 연결 타임아웃 설정
-                .setReadTimeout(Duration.ofMillis(30000))  // 읽기 타임아웃 설정
-                .build();
+    public RestTemplate template(){
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.getInterceptors().add((request, body, execution) -> {
+            request.getHeaders().add("Authorization", "Bearer " + openAiKey);
+            return execution.execute(request, body);
+        });
+        return restTemplate;
     }
 }
