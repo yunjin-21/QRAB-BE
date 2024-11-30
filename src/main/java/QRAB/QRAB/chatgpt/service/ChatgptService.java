@@ -13,8 +13,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import QRAB.QRAB.quiz.domain.Quiz;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -27,8 +25,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class ChatgptService {
-    private static final Logger log = LoggerFactory.getLogger(ChatgptService.class);
-
     private final RestTemplate restTemplate;
     @Value("${openai.api.key}")
     private String openAiKey;
@@ -77,9 +73,8 @@ public class ChatgptService {
         """;
 
         String prompt = fewShotExamples + "\n\n" + content + """
-
-        Summarize this content in a concise, organized format like the above examples. When you print it out, don't get # or *, just get the text. Focus on key concepts and maintain logical flow. Make it as detailed and comprehensive as possible, enough to fill three pages. Be generous of the amount of the text.
-
+        
+        Summarize this content in a concise, organized format like the above examples. When you print it out, don't get # or *, just get the text. Focus on key concepts and maintain logical flow. Make it as detailed and comprehensive as possible, enough to fill 1 A4 page. Be generous of the amount of the text.
         """;
 
         ChatgptRequestDTO chatgptRequestDTO = new ChatgptRequestDTO(model, prompt);
@@ -175,7 +170,7 @@ public class ChatgptService {
                 1. 강점 분석에서는 반드시 강점 카테고리의 내용만 언급하세요.
                 2. 약점 분석에서는 반드시 약점 카테고리의 내용만 언급하세요.
                 3. 분석은 구체적이고 명확하게 해주시고, 실제 문제 풀이 내용을 근거로 들어 설명해주세요.
-                4. 특수문자나 마크다운 문법(-, *, `, #)은 사용하지 말고 순수 텍스트로만 작성해주세요.
+                4. 특수문자나 마크다운 문법(-, *, , #)은 사용하지 말고 순수 텍스트로만 작성해주세요.
                 """,
                 username,
                 String.join("과 ", strongCategoryNames),
@@ -210,7 +205,7 @@ public class ChatgptService {
                 
                 주의사항:
                 1. 학습 방법은 구체적이고 실천 가능한 내용으로 작성해주세요.
-                2. 특수문자나 마크다운 문법(-, *, `, #)은 사용하지 말고 순수 텍스트로만 작성해주세요.
+                2. 특수문자나 마크다운 문법(-, *, , #)은 사용하지 말고 순수 텍스트로만 작성해주세요.
                 4. 각 팁은 새로운 줄에 작성하고 앞에 하이픈(-)을 붙여주세요.
                 5. 정확히 2개의 학습 방법을 작성해주세요.
                 """,
@@ -260,7 +255,6 @@ public class ChatgptService {
                             dto.setTitle(ref.getTitle());
                             dto.setContent(ref.getContent());
                             dto.setLink(ref.getLink());
-                            System.out.println("Mapped reference: " + dto);
                             return dto;
                         })
                         .collect(Collectors.toList());
@@ -271,7 +265,7 @@ public class ChatgptService {
             return generateReferencesWithGPT(categoryName, content);
 
         } catch (Exception e) {
-            log.error("RAG service failed, falling back to GPT. Error: {}", e.getMessage());
+            System.out.println("RAG service failed, falling back to GPT: " + e.getMessage());
             return generateReferencesWithGPT(categoryName, content);
         }
     }
@@ -299,7 +293,7 @@ public class ChatgptService {
                 
                 주의사항:
                 1. 반드시 현재 접속 가능한 실제 웹사이트의 링크여야 합니다.
-                2. 특수문자나 마크다운 문법(-, *, `, #)은 사용하지 마세요.
+                2. 특수문자나 마크다운 문법(-, *, , #)은 사용하지 마세요.
                 3. 정확히 2개의 자료만 추천해주세요.
                 4. content는 반드시 자세하고 구체적으로 작성해주세요.
                 """,
