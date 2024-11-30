@@ -168,7 +168,7 @@ public class UrlCrawlerService {
             String chatgptContent = chatgptService.getSummary(note.getContent());
             System.out.println(chatgptContent);
             note.setChatgptContent(chatgptContent);
-
+            note.setTitle(chatgptContent.substring(0, 20));
 
             Note savedNote = noteRepository.save(note);
             System.out.println(savedNote.getContent());

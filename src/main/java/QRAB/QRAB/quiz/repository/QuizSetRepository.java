@@ -17,7 +17,7 @@ public interface QuizSetRepository extends JpaRepository<QuizSet, Long> {
     // status가 'unsolved'인 퀴즈세트만 조회
     Page<QuizSet> findByUserAndStatus(User user, String status, Pageable pageable);
     Page<QuizSet> findByNoteIdAndStatus(Long noteId, String status, Pageable pageable);
-    List<QuizSet> findByUserOrderByCreatedAtDesc(User user);
+    List<QuizSet> findByUserAndStatusOrderByCreatedAtDesc(User user, String status);
 
     @Query("SELECT qs FROM QuizSet qs WHERE qs.user = :user")
     List<QuizSet> findByUser(@Param("user") User user);

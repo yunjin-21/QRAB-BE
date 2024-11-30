@@ -4,7 +4,9 @@ import QRAB.QRAB.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Entity
 @Getter
@@ -21,10 +23,11 @@ public class Email extends BaseTimeEntity {
     private int hour; // 1~12
     private int minute; // 0~59
     private String ampm;
-    private LocalDateTime scheduledTime;
-
+    @Column(name = "scheduled_time")
+    private ZonedDateTime scheduledTime;
+    //private LocalDateTime scheduledTime;
     @Builder
-    public Email(String toEmail, int hour, int minute, String ampm, LocalDateTime scheduledTime) {
+    public Email(String toEmail, int hour, int minute, String ampm, ZonedDateTime scheduledTime) {
         this.toEmail = toEmail;
         this.hour = hour;
         this.minute = minute;

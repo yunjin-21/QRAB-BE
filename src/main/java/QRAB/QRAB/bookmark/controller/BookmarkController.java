@@ -36,14 +36,14 @@ public class BookmarkController {
 
     // 북마크 삭제
     @DeleteMapping("/{bookmarkId}")
-    public ResponseEntity<String> deleteBookmark(@PathVariable Long bookmarkId) {
+    public ResponseEntity<String> deleteBookmark(@PathVariable("bookmarkId") Long bookmarkId) {
         bookmarkService.deleteBookmark(bookmarkId);
         return ResponseEntity.ok("북마크가 삭제되었습니다.");
     }
 
     // 북마크 노트 조회
     @GetMapping("/notes")
-    public ResponseEntity<Map<String, Object>> getBookmarkedNotes(@RequestParam(defaultValue = "0") int page) {
+    public ResponseEntity<Map<String, Object>> getBookmarkedNotes(@RequestParam(name = "page", defaultValue = "0") int page) {
         Page<BookmarkedNoteResponseDTO> bookmarkedNotesPage = bookmarkService.getBookmarkedNotes(page);
         Map<String, Object> response = new HashMap<>();
         response.put("bookmarkedNotes", bookmarkedNotesPage.getContent());
@@ -52,7 +52,7 @@ public class BookmarkController {
 
     // 특정 노트 북마크 조회
     @GetMapping("/notes/{noteId}/quizzes")
-    public ResponseEntity<List<BookmarkedQuizResponseDTO>> getBookmarkedQuizzes(@PathVariable Long noteId) {
+    public ResponseEntity<List<BookmarkedQuizResponseDTO>> getBookmarkedQuizzes(@PathVariable("noteId") Long noteId) {
         List<BookmarkedQuizResponseDTO> response = bookmarkService.getBookmarkedQuizzes(noteId);
         return ResponseEntity.ok(response);
     }
