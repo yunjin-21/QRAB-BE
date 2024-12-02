@@ -31,9 +31,11 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
             "ORDER BY n.id")
     Page<BookmarkedNoteResponseDTO> findBookmarkedNotesWithCounts(@Param("userId") Long userId, Pageable pageable);
 
-    @Query("SELECT new QRAB.QRAB.bookmark.dto.BookmarkedQuizResponseDTO(" +
-            "q.quizId, qs.quizSetId, q.question, q.choices, " +
-            "qa.selectedAnswer, q.correctAnswer, qr.takenAt) " +
+    @Query("SELECT n.id as noteId, n.title as title, " +
+            "q.quizId as quizId, qs.quizSetId as quizSetId, " +
+            "q.question as question, q.choices as choices, " +
+            "qa.selectedAnswer as userAnswer, q.correctAnswer as correctAnswer, " +
+            "qr.takenAt as solvedAt " +
             "FROM Bookmark b " +
             "JOIN b.quiz q " +
             "JOIN q.quizSet qs " +
@@ -41,5 +43,8 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
             "LEFT JOIN QuizAnswer qa ON qa.quiz.quizId = q.quizId AND qa.quizSet.quizSetId = qs.quizSetId " +
             "LEFT JOIN QuizResult qr ON qr.resultId = qa.quizResult.resultId " +
             "WHERE n.id = :noteId AND b.user.userId = :userId")
-    List<BookmarkedQuizResponseDTO> findBookmarkedQuizzesByNoteId(@Param("noteId") Long noteId, @Param("userId") Long userId);
+    List<Object[]> findBookmarkedQuizzesByNoteId(@Param("noteId") Long noteId, @Param("userId") Long userId);
+
+    @Query("SELECT n.title FROM Note n WHERE n.id = :noteId")
+    String findNoteTitleById(@Param("noteId") Long noteId);
 }

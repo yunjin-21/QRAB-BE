@@ -52,8 +52,8 @@ public class BookmarkController {
 
     // 특정 노트 북마크 조회
     @GetMapping("/notes/{noteId}/quizzes")
-    public ResponseEntity<List<BookmarkedQuizResponseDTO>> getBookmarkedQuizzes(@PathVariable("noteId") Long noteId) {
-        List<BookmarkedQuizResponseDTO> response = bookmarkService.getBookmarkedQuizzes(noteId);
+    public ResponseEntity<BookmarkedQuizResponseDTO> getBookmarkedQuizzes(@PathVariable("noteId") Long noteId) {
+        BookmarkedQuizResponseDTO response = bookmarkService.getBookmarkedQuizzes(noteId);
         return ResponseEntity.ok(response);
     }
 }
