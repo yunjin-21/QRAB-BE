@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class BookmarkService {
@@ -90,13 +91,36 @@ public class BookmarkService {
     }
 
     // 특정 노트 북마크 조회
-    public List<BookmarkedQuizResponseDTO> getBookmarkedQuizzes(Long noteId) {
+    public BookmarkedQuizResponseDTO getBookmarkedQuizzes(Long noteId) {
         String username = SecurityUtil.getCurrentUsername()
                 .orElseThrow(() -> new RuntimeException("현재 인증된 사용자가 없습니다."));
 
         User user = userRepository.findOneWithAuthoritiesByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found: " + username));
 
-        return bookmarkRepository.findBookmarkedQuizzesByNoteId(noteId, user.getUserId());
+        List<Object[]> results = bookmarkRepository.findBookmarkedQuizzesByNoteId(noteId, user.getUserId());
+
+        if (results.isEmpty()) {
+            return null;
+        }
+
+        BookmarkedQuizResponseDTO response = new BookmarkedQuizResponseDTO();
+        response.setNoteId(noteId);
+        response.setTitle((String) results.get(0)[1]);  // title은 첫 번째 결과에서 가져옴
+
+        List<BookmarkedQuizResponseDTO.BookmarkedQuiz> quizzes = results.stream()
+                .map(result -> new BookmarkedQuizResponseDTO.BookmarkedQuiz(
+                        (Long) result[2],       // quizId
+                        (Long) result[3],       // quizSetId
+                        (String) result[4],     // question
+                        (String) result[5],     // choices
+                        (Integer) result[6],    // userAnswer
+                        (Integer) result[7],    // correctAnswer
+                        (LocalDateTime) result[8] // solvedAt
+                ))
+                .collect(Collectors.toList());
+
+        response.setBookmarkedQuizzes(quizzes);
+        return response;
     }
 }
