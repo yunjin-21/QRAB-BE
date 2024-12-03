@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -318,7 +319,16 @@ public class DetailedAnalysisService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         DetailedAnalysis latestAnalysis = detailedAnalysisRepository.findByUserAndIsLatestTrue(user)
-                .orElseThrow(() -> new RuntimeException("No analysis found"));
+                .orElse(null);
+
+        // 기존 상세 분석 결과가 없으면 빈 DTO 반환
+        if (latestAnalysis == null) {
+            DetailedAnalysisResponseDTO emptyResponse = new DetailedAnalysisResponseDTO();
+            emptyResponse.setUserAnalysis("");
+            emptyResponse.setStrongCategories(new DetailedAnalysisResponseDTO.StrongCategoriesDTO());
+            emptyResponse.setWeakCategories(new ArrayList<>());
+            return emptyResponse;
+        }
 
         try {
             ObjectMapper mapper = new ObjectMapper();

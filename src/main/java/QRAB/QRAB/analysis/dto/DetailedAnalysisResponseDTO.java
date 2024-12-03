@@ -11,19 +11,22 @@ public class DetailedAnalysisResponseDTO {
     private StrongCategoriesDTO strongCategories;
     private List<WeakCategoryDTO> weakCategories;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     public static class StrongCategoriesDTO {
         private List<String> finalCategoryName;
     }
 
-    @Getter @Setter
+    @Getter
+    @Setter
     public static class WeakCategoryDTO {
         private String finalCategoryName;
         private List<String> studyTips;
         private List<ReferenceDTO> references;
     }
 
-    @Getter @Setter
+    @Getter
+    @Setter
     public static class ReferenceDTO {
         private String title;
         private String link;
