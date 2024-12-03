@@ -1,11 +1,16 @@
 package QRAB.QRAB.chatgpt.service;
 
 import QRAB.QRAB.analysis.dto.DetailedAnalysisResponseDTO;
+import QRAB.QRAB.analysis.dto.RAGRequestDTO;
+import QRAB.QRAB.analysis.dto.RAGResponseDTO;
 import QRAB.QRAB.chatgpt.dto.ChatgptRequestDTO;
 import QRAB.QRAB.chatgpt.dto.ChatgptResponseDTO;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import QRAB.QRAB.quiz.domain.Quiz;
@@ -28,6 +33,13 @@ public class ChatgptService {
     private String apiUrl;
     @Value("${openai.model}")
     private String model;
+
+    @Value("${rag.service.url}")
+    private String ragServiceUrl;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @Autowired
     public ChatgptService(RestTemplate restTemplate){
         this.restTemplate = restTemplate;
@@ -62,7 +74,7 @@ public class ChatgptService {
 
         String prompt = fewShotExamples + "\n\n" + content + """
         
-       Summarize this content in a concise, organized format like the above examples. When you print it out, don't get # or *, just get the text. Focus on key concepts and maintain logical flow. Make it as detailed and comprehensive as possible, enough to fill three pages. Be generous of the amount of the text.
+        Summarize this content in a concise, organized format like the above examples. When you print it out, don't get # or *, just get the text. Focus on key concepts and maintain logical flow. Make it as detailed and comprehensive as possible, enough to fill 1 A4 page. Be generous of the amount of the text.
         """;
 
         ChatgptRequestDTO chatgptRequestDTO = new ChatgptRequestDTO(model, prompt);
@@ -158,7 +170,7 @@ public class ChatgptService {
                 1. 강점 분석에서는 반드시 강점 카테고리의 내용만 언급하세요.
                 2. 약점 분석에서는 반드시 약점 카테고리의 내용만 언급하세요.
                 3. 분석은 구체적이고 명확하게 해주시고, 실제 문제 풀이 내용을 근거로 들어 설명해주세요.
-                4. 특수문자나 마크다운 문법(-, *, `, #)은 사용하지 말고 순수 텍스트로만 작성해주세요.
+                4. 특수문자나 마크다운 문법(-, *, , #)은 사용하지 말고 순수 텍스트로만 작성해주세요.
                 """,
                 username,
                 String.join("과 ", strongCategoryNames),
@@ -190,13 +202,12 @@ public class ChatgptService {
                 example:
                 - TCP와 UDP의 기본 개념을 먼저 공부하세요. TCP는 연결 지향적이며 데이터 전송의 신뢰성을 보장하는 프로토콜입니다. UDP는 비연결 지향적이며 속도를 중시하는 프로토콜로, 데이터 전송의 신뢰성을 보장하지 않습니다.
                 - 스택의 기본 개념인 LIFO 구조를 복습하세요. LIFO는 Last In First Out의 약자로, 가장 나중에 들어온 데이터가 가장 먼저 나가는 구조입니다. 스택의 pop(), push() 메소드와 같은 기본적인 작동 방식을 이해하는 것이 중요합니다.
-                - 커밋 메시지의 기본 구성 요소를 공부하세요. 커밋 메시지는 제목, 본문, 꼬리말로 구성되며, 이를 통해 코드 변경 사항을 명확하게 설명하고 팀원들과의 소통을 원활하게 할 수 있습니다. 각 요소의 역할과 작성 원칙을 숙지하는 것이 좋습니다.
                 
                 주의사항:
                 1. 학습 방법은 구체적이고 실천 가능한 내용으로 작성해주세요.
-                2. 특수문자나 마크다운 문법(-, *, `, #)은 사용하지 말고 순수 텍스트로만 작성해주세요.
-                3. JSON이나 특수문자 없이 순수 텍스트로만 작성해주세요.
+                2. 특수문자나 마크다운 문법(-, *, , #)은 사용하지 말고 순수 텍스트로만 작성해주세요.
                 4. 각 팁은 새로운 줄에 작성하고 앞에 하이픈(-)을 붙여주세요.
+                5. 정확히 2개의 학습 방법을 작성해주세요.
                 """,
                 categoryName,
                 String.join("\n", weakSummaries)
@@ -213,30 +224,89 @@ public class ChatgptService {
     }
 
     public List<DetailedAnalysisResponseDTO.ReferenceDTO> generateReferences(String categoryName, String content) {
+        try {
+            RAGRequestDTO ragRequest = new RAGRequestDTO(categoryName, content);
+
+            // RAG 서버의 raw response를 먼저 받아옴
+            ResponseEntity<String> rawResponse = restTemplate.exchange(
+                    ragServiceUrl + "/generate-references",
+                    HttpMethod.POST,
+                    new HttpEntity<>(ragRequest),
+                    String.class
+            );
+
+            /*
+            ObjectMapper mapper = new ObjectMapper();
+            System.out.println("Raw JSON from RAG server (pretty printed): " +
+                    mapper.writerWithDefaultPrettyPrinter().writeValueAsString(rawResponse.getBody()));
+            */
+
+            // JSON을 명시적으로 매핑
+            RAGResponseDTO ragResponse = objectMapper.readValue(
+                    rawResponse.getBody(),
+                    RAGResponseDTO.class
+            );
+
+            // RAG 서버에서 관련 문서를 찾은 경우
+            if (ragResponse != null && !ragResponse.isNoRelevantDocs() && !ragResponse.getReferences().isEmpty()) {
+                return ragResponse.getReferences().stream()
+                        .map(ref -> {
+                            DetailedAnalysisResponseDTO.ReferenceDTO dto = new DetailedAnalysisResponseDTO.ReferenceDTO();
+                            dto.setTitle(ref.getTitle());
+                            dto.setContent(ref.getContent());
+                            dto.setLink(ref.getLink());
+                            return dto;
+                        })
+                        .collect(Collectors.toList());
+            }
+
+            // GPT 사용하는 경우
+            System.out.println("No relevant documents found in RAG, falling back to GPT");
+            return generateReferencesWithGPT(categoryName, content);
+
+        } catch (Exception e) {
+            System.out.println("RAG service failed, falling back to GPT: " + e.getMessage());
+            return generateReferencesWithGPT(categoryName, content);
+        }
+    }
+
+    // 자료 추천 GPT 로직
+    private List<DetailedAnalysisResponseDTO.ReferenceDTO> generateReferencesWithGPT(String categoryName, String content) {
         String prompt = String.format(
                 """
                 %s 분야의 %s 주제에 대해 추가 학습할 수 있도록 한국인 대학생에게 자료를 추천해주세요.
-                먼저 온라인 학습이 가능한 링크 2개, 그 다음 관련 도서 링크 2개를 추천해주세요.
+                정확히 2개의 학습 자료를 추천해주시고, 각 자료에 대해 다음 정보를 포함해주세요:
+                1. 자료의 제목
+                2. 실제 접근 가능한 URL
+                3. 해당 자료의 핵심 내용 요약 (최소 200자 이상)
+                
                 다음과 같은 JSON 형식으로 작성해주세요:
                 {
                   "references": [
                     {
-                      "title": "문서/블로그/강좌/자료 제목",
-                      "link": "URL"
+                      "title": "문서/강좌 제목",
+                      "link": "URL",
+                      "content": "자료의 상세한 내용 요약 (구조화된 형태로 작성)"
                     }
                   ]
                 }
                 
                 주의사항:
-                1. 반드시 현재 접속 가능한 실제 웹사이트의 링크여야 합니다. 임의로 링크를 생성하지 마세요.
-                2. 특수문자나 마크다운 문법(-, *, `, #)은 사용하지 말고 순수 텍스트로만 작성해주세요.
+                1. 반드시 현재 접속 가능한 실제 웹사이트의 링크여야 합니다.
+                2. 특수문자나 마크다운 문법(-, *, , #)은 사용하지 마세요.
+                3. 정확히 2개의 자료만 추천해주세요.
+                4. content는 반드시 자세하고 구체적으로 작성해주세요.
                 """,
                 categoryName,
                 content
         );
 
         ChatgptRequestDTO chatgptRequestDTO = new ChatgptRequestDTO(model, prompt);
-        ChatgptResponseDTO chatgptResponseDTO = restTemplate.postForObject(apiUrl, chatgptRequestDTO, ChatgptResponseDTO.class);
+        ChatgptResponseDTO chatgptResponseDTO = restTemplate.postForObject(
+                apiUrl,
+                chatgptRequestDTO,
+                ChatgptResponseDTO.class
+        );
 
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -248,6 +318,7 @@ public class ChatgptService {
                     DetailedAnalysisResponseDTO.ReferenceDTO dto = new DetailedAnalysisResponseDTO.ReferenceDTO();
                     dto.setTitle(reference.get("title").asText());
                     dto.setLink(reference.get("link").asText());
+                    dto.setContent(reference.get("content").asText());
                     references.add(dto);
                 });
             }
@@ -257,32 +328,4 @@ public class ChatgptService {
             throw new RuntimeException("Failed to parse references", e);
         }
     }
-    /*public List<DetailedAnalysisResponseDTO.ReferenceDTO> generateReferences(String categoryName, String content) {
-        List<DetailedAnalysisResponseDTO.ReferenceDTO> references = new ArrayList<>();
-
-        // 온라인 강좌 2개
-        DetailedAnalysisResponseDTO.ReferenceDTO ref1 = new DetailedAnalysisResponseDTO.ReferenceDTO();
-        ref1.setTitle("인프런 - " + categoryName + " 기초 강좌");
-        ref1.setLink("https://www.inflearn.com/courses/" + categoryName.toLowerCase());
-        references.add(ref1);
-
-        DetailedAnalysisResponseDTO.ReferenceDTO ref2 = new DetailedAnalysisResponseDTO.ReferenceDTO();
-        ref2.setTitle("YouTube - " + categoryName + " 학습 채널");
-        ref2.setLink("https://www.youtube.com/results?search_query=" + categoryName.toLowerCase());
-        references.add(ref2);
-
-        // 도서 2개
-        DetailedAnalysisResponseDTO.ReferenceDTO ref3 = new DetailedAnalysisResponseDTO.ReferenceDTO();
-        ref3.setTitle(categoryName + " 기초 개념서");
-        ref3.setLink("https://www.yes24.com/Product/Search?domain=ALL&query=" + categoryName);
-        references.add(ref3);
-
-        DetailedAnalysisResponseDTO.ReferenceDTO ref4 = new DetailedAnalysisResponseDTO.ReferenceDTO();
-        ref4.setTitle(categoryName + " 심화 학습서");
-        ref4.setLink("https://www.aladin.co.kr/search/wsearchresult.aspx?SearchWord=" + categoryName);
-        references.add(ref4);
-
-        return references;
-    }*/
-
 }
